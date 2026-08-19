@@ -4,10 +4,10 @@
 		<Product>Loose Lips</Product>
 		<Description>Talk to anyone in Shadows of Doubt in your own words. A local AI answers, and what it says changes the world.</Description>
 		<RootNamespace>LooseLips</RootNamespace>
-		<Version>0.4.0</Version>
+		<Version>0.5.0</Version>
 		<BepInExPluginGuid>dev.hubert.looselips</BepInExPluginGuid>
 		<BepInExPluginName>Loose Lips</BepInExPluginName>
-		<BepInExPluginVersion>0.4.0</BepInExPluginVersion>
+		<BepInExPluginVersion>0.5.0</BepInExPluginVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>disable</Nullable>

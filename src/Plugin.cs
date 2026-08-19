@@ -41,7 +41,9 @@ namespace LooseLips
         public override bool Unload()
         {
             Player2Client.Shutdown();
+            ConversationMemory.Save();
             ConversationMemory.Clear();
+            World.FollowDirector.StopAll();
             VanillaLineCapture.Clear();
             return base.Unload();
         }

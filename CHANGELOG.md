@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.0
+
+Fixes the settings window, and closes most of the gap between what the mod could do and
+what it was asked to do.
+
+* **Fixed the settings window being unusable in game.** It set UnityEngine.Cursor directly,
+  which the game overwrites through its own InputController every frame - so the mouse kept
+  turning the character and the window would not take clicks. It now asks the game via
+  SetMouseInputMode / SetCursorVisible / SetCursorLock, suspends player movement while open,
+  and keeps asserting the claim rather than setting it once. The window is also pulled back
+  on screen when opened, drawn on top of the game's HUD, and the hotkey is logged.
+* **People remember you between sessions.** Conversations are kept per city, keyed by the
+  city seed, so somebody you talked into something yesterday does not greet you as a
+  stranger today, and can be held to what they said.
+* **Cash changes hands.** Citizens carry money in their wallet, and can now be talked or
+  frightened into handing some over, capped per conversation. The prompt is also told what
+  is in their pockets - a playtest had somebody refuse with "I have nothing to give" while
+  carrying money, because the mod had only ever looked at their hands.
+* **Attacking somebody other than you.** attack now takes a target, who has to be present.
+* **Talking somebody into coming with you.** The game has no companion behaviour at all, so
+  this repeatedly re-points them at where you are standing: they trail you, take their own
+  route, and give up if you outrun them or after a timer.
+
 ## 0.4.0
 
 The half of the original design that was missing: a conversation that changes more than

@@ -31,9 +31,6 @@ namespace LooseLips.Dialog
         private static string _goalDump = "";
         private static bool _probing;
 
-        private static CursorLockMode _previousLock;
-        private static bool _previousCursorVisible;
-
         public static bool IsOpen => _open;
 
         public static void Toggle()
@@ -47,10 +44,12 @@ namespace LooseLips.Dialog
             if (_open) return;
             _open = true;
 
-            _previousLock = Cursor.lockState;
-            _previousCursorVisible = Cursor.visible;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            // A window that opened off screen once cannot be found again, because the
+            // position is remembered. Pull it back into view every time it opens.
+            _rect.x = Mathf.Clamp(_rect.x, 0f, Mathf.Max(0f, Screen.width - 200f));
+            _rect.y = Mathf.Clamp(_rect.y, 0f, Mathf.Max(0f, Screen.height - 120f));
+
+            GameInput.Claim();
         }
 
         public static void Close()
@@ -58,13 +57,15 @@ namespace LooseLips.Dialog
             if (!_open) return;
             _open = false;
 
-            Cursor.lockState = _previousLock;
-            Cursor.visible = _previousCursorVisible;
+            GameInput.Release();
         }
 
         public static void Draw()
         {
             if (!_open) return;
+
+            // Draw last, so the game's own HUD cannot end up covering this.
+            GUI.depth = -1000;
 
             var scale = Mathf.Clamp(ModConfig.UiScale.Value, 0.6f, 2.5f);
             var previousMatrix = GUI.matrix;
@@ -160,6 +161,7 @@ namespace LooseLips.Dialog
             IntSlider(ModConfig.HistoryTurnsPerCitizen, "Remembered turns per person", 0, 64, "");
             IntSlider(ModConfig.MaxReplyCharacters, "Longest reply", 60, 600, " characters");
             Toggle(ModConfig.UseVanillaLinesAsInfluence, "Use the game's own lines as tone guidance");
+            Toggle(ModConfig.RememberBetweenSessions, "People remember you between sessions");
             GUILayout.Label("The scripted answer is shown to the model as the register to write in, " +
                             "rather than being spoken word for word.");
 
@@ -217,6 +219,16 @@ namespace LooseLips.Dialog
             Toggle(ModConfig.AllowItemHandover, "Hand over the item they are holding");
             Toggle(ModConfig.AllowPoliceRedirection, "Call police onto you, off you, or onto someone else");
             Toggle(ModConfig.AllowCombatEffects, "Flee, fight, or surrender");
+            Toggle(ModConfig.AllowMoneyHandover, "Hand over cash they are carrying");
+            IntSlider(ModConfig.MaxMoneyPerLine, "Most one conversation can get", 0, 5000, "");
+            Toggle(ModConfig.AllowFollowing, "Agree to come along with you");
+            if (ModConfig.AllowFollowing.Value)
+            {
+                var names = World.FollowDirector.Names();
+                GUILayout.Label(names.Count == 0
+                    ? "Nobody is with you."
+                    : "With you: " + string.Join(", ", names));
+            }
             Toggle(ModConfig.AllowTestimony, "Give up where and when they saw somebody");
             GUILayout.Label("Uses the game's own witness mechanism, so what they give you is a real lead in the " +
                             "case file - and they can only name people they actually saw.");

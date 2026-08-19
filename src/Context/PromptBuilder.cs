@@ -40,6 +40,24 @@ namespace LooseLips.Context
                 sb.AppendLine("Your connection to them: " + string.Join(", ", s.ConnectionsToPlayer));
             sb.AppendLine();
 
+            if (s.PriorConversations > 0)
+            {
+                sb.AppendLine("You have spoken with this investigator " + s.PriorConversations +
+                              (s.PriorConversations == 1 ? " time before." : " times before."));
+                sb.AppendLine("What was said then is below. Hold them to it: contradictions, promises and threats " +
+                              "all still stand.");
+                sb.AppendLine();
+            }
+
+            if (s.Carrying.Count > 0)
+            {
+                sb.AppendLine("# What is in your pockets");
+                foreach (var item in s.Carrying) sb.AppendLine(item);
+                sb.AppendLine("You know exactly what you are carrying. Do not claim to have nothing when you do,");
+                sb.AppendLine("though refusing to part with it is entirely your right.");
+                sb.AppendLine();
+            }
+
             sb.AppendLine("# What you actually know");
             if (s.GroundTruth.Count == 0)
             {
@@ -105,6 +123,7 @@ namespace LooseLips.Context
             if (s.AtWork) sb.AppendLine("You are at work.");
             if (s.IsEnforcer) sb.AppendLine("You are a law enforcement officer" + (s.IsOnDuty ? " on duty." : ", off duty."));
             if (s.IsRestrained) sb.AppendLine("You are restrained and cannot move.");
+            if (s.IsFollowingPlayer) sb.AppendLine("You are currently going along with this investigator.");
             if (s.InCombat) sb.AppendLine("You are in the middle of a fight.");
             if (s.IsFleeing) sb.AppendLine("You are trying to run away.");
 

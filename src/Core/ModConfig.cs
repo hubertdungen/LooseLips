@@ -24,6 +24,7 @@ namespace LooseLips.Core
         public static ConfigEntry<int> HistoryTurnsPerCitizen;
         public static ConfigEntry<int> MaxReplyCharacters;
         public static ConfigEntry<bool> UseVanillaLinesAsInfluence;
+        public static ConfigEntry<bool> RememberBetweenSessions;
 
         // --- Voice reach ---
         public static ConfigEntry<float> TalkRadius;
@@ -46,6 +47,13 @@ namespace LooseLips.Core
         public static ConfigEntry<bool> AllowTestimony;
         public static ConfigEntry<bool> AllowGoalRedirection;
         public static ConfigEntry<bool> AllowCrowdEffects;
+        public static ConfigEntry<bool> AllowMoneyHandover;
+        public static ConfigEntry<int> MaxMoneyPerLine;
+        public static ConfigEntry<bool> AllowFollowing;
+        public static ConfigEntry<int> MaxFollowers;
+        public static ConfigEntry<float> FollowDuration;
+        public static ConfigEntry<float> FollowNudgeInterval;
+        public static ConfigEntry<float> FollowGiveUpDistance;
         public static ConfigEntry<float> MaxLikeShiftPerLine;
         public static ConfigEntry<float> MaxSuspicionShiftPerLine;
 
@@ -97,6 +105,10 @@ namespace LooseLips.Core
             UseVanillaLinesAsInfluence = cfg.Bind("Conversation", "Use vanilla lines as influence", true,
                 "Feed the game's own scripted answer to the model as tone guidance instead of showing it verbatim.");
 
+            RememberBetweenSessions = cfg.Bind("Conversation", "People remember you between sessions", true,
+                "Conversations are kept on disk per city, so somebody you talked into something yesterday does " +
+                "not greet you as a stranger today. Stored in BepInEx/LooseLips-memories, keyed by city seed.");
+
             TalkRadius = cfg.Bind("Voice reach", "Talking radius (metres)", 6f,
                 new ConfigDescription("How far a normal spoken line carries.", new AcceptableValueRange<float>(1f, 30f)));
             ShoutRadius = cfg.Bind("Voice reach", "Shouting radius (metres)", 22f,
@@ -138,6 +150,26 @@ namespace LooseLips.Core
                 "which is the difference between changing their mood and changing their afternoon.");
             AllowCrowdEffects = cfg.Bind("World effects", "Allow effects on everyone in earshot", true,
                 "Lets one line move the whole room rather than one person. This is what shouting is for.");
+
+            AllowMoneyHandover = cfg.Bind("World effects", "Allow handing over cash", true,
+                "A convinced, frightened or bribed citizen can give you money they are genuinely carrying.");
+            MaxMoneyPerLine = cfg.Bind("World effects", "Most cash one conversation can get", 200,
+                new ConfigDescription("Ceiling per handover, so one lucky sentence cannot empty a wallet.",
+                    new AcceptableValueRange<int>(0, 5000)));
+            AllowFollowing = cfg.Bind("World effects", "Allow talking people into following you", true,
+                "The game has no companion behaviour, so this is built by repeatedly sending them to where you " +
+                "are standing. They trail you rather than stick to you, and give up if you outrun them.");
+            MaxFollowers = cfg.Bind("World effects", "Most people following at once", 2,
+                new ConfigDescription("", new AcceptableValueRange<int>(1, 8)));
+            FollowDuration = cfg.Bind("World effects", "They follow for (seconds)", 300f,
+                new ConfigDescription("How long somebody stays with you before drifting back to their own life.",
+                    new AcceptableValueRange<float>(30f, 1800f)));
+            FollowNudgeInterval = cfg.Bind("World effects", "Re-point followers every (seconds)", 4f,
+                new ConfigDescription("Lower is tighter following and more work for the AI.",
+                    new AcceptableValueRange<float>(1f, 15f)));
+            FollowGiveUpDistance = cfg.Bind("World effects", "They give up beyond (metres)", 45f,
+                new ConfigDescription("Outrun somebody by this much and they stop bothering.",
+                    new AcceptableValueRange<float>(10f, 200f)));
 
             MaxLikeShiftPerLine = cfg.Bind("World effects", "Maximum like shift per line", 0.15f,
                 new ConfigDescription("Caps how much one sentence can move a relationship.",

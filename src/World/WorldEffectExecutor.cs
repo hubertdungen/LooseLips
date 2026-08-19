@@ -40,13 +40,24 @@ namespace LooseLips.World
             if (ModConfig.AllowCombatEffects.Value)
             {
                 yield return "flee - you turn and run from the investigator";
-                yield return "attack - you attack the investigator";
+                yield return "attack - you attack somebody; leave target empty for the investigator, or put a name";
                 yield return "surrender - you stop fighting and give yourself up";
             }
 
             if (ModConfig.AllowItemHandover.Value)
             {
                 yield return "give_item - you hand over the item you are holding";
+            }
+
+            if (ModConfig.AllowMoneyHandover.Value)
+            {
+                yield return "give_money - you hand over cash you are carrying; put the amount in target";
+            }
+
+            if (ModConfig.AllowFollowing.Value)
+            {
+                yield return "follow - you agree to come along with the investigator";
+                yield return "stop_following - you have had enough and stop going with them";
             }
 
             if (ModConfig.AllowPoliceRedirection.Value)
@@ -126,9 +137,12 @@ namespace LooseLips.World
                 case "calm_down": return ShiftAlertness(speaker, -0.3f);
                 case "alarm": return ShiftAlertness(speaker, +0.3f);
                 case "flee": return Flee(speaker);
-                case "attack": return Attack(speaker);
+                case "attack": return Attack(speaker, effect.Target, shouted);
                 case "surrender": return Surrender(speaker);
                 case "give_item": return GiveHeldItem(speaker);
+                case "give_money": return WalletReader.GiveMoney(speaker, effect.Target);
+                case "follow": return FollowDirector.Start(speaker);
+                case "stop_following": return FollowDirector.Stop(speaker);
                 case "call_police": return SetOfficerPursuit(speaker, Player.Instance, shouted);
                 case "protect": return CallOffOfficers(speaker, shouted);
                 case "accuse": return AccuseOther(speaker, effect.Target, shouted);
@@ -255,17 +269,47 @@ namespace LooseLips.World
             return null;
         }
 
-        private static string Attack(Citizen speaker)
+        /// <summary>
+        /// Attack the investigator, or somebody else standing there. A named target has to be
+        /// present and audible - talking somebody into attacking a person who is not in the
+        /// room would be a sentence with nothing behind it.
+        /// </summary>
+        private static string Attack(Citizen speaker, string targetName, bool shouted)
         {
             if (!ModConfig.AllowCombatEffects.Value) return "fleeing and combat are switched off";
             if (speaker.ai == null) return "no AI on this citizen";
             if (speaker.ai.restrained) return "they are restrained";
 
-            var player = Player.Instance;
-            if (player == null) return "no player to attack";
+            Actor target = Player.Instance;
+
+            if (!string.IsNullOrWhiteSpace(targetName))
+            {
+                Citizen found = null;
+                foreach (var cit in Earshot.CitizensWhoCanHear(speaker, shouted))
+                {
+                    try
+                    {
+                        if (cit == null || cit.isPlayer) continue;
+                        if (cit.humanID == speaker.humanID) continue;
+                        var n = cit.GetCitizenName();
+                        if (!string.IsNullOrEmpty(n) &&
+                            n.IndexOf(targetName.Trim(), StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            found = cit;
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+
+                if (found == null) return "that person is not here to be attacked";
+                target = found;
+            }
+
+            if (target == null) return "nobody to attack";
 
             speaker.ai.SetInCombat(true);
-            speaker.ai.StartAttack(player);
+            speaker.ai.StartAttack(target);
             return null;
         }
 

@@ -67,6 +67,7 @@ namespace LooseLips.Dialog
 
         public static void Open(Citizen target, bool shouted, Action<string> onSubmit)
         {
+            GameInput.Claim();
             _target = target;
             _shouted = shouted;
             _onSubmit = onSubmit;
@@ -78,6 +79,7 @@ namespace LooseLips.Dialog
         public static void Close()
         {
             _open = false;
+            if (!SettingsWindow.IsOpen) GameInput.Release();
             _target = null;
             _onSubmit = null;
             _text = string.Empty;
@@ -88,12 +90,25 @@ namespace LooseLips.Dialog
             // Everything that came back from a network call lands here.
             MainThread.Drain();
 
+            // Recall this city's conversations as soon as the city exists.
+            ConversationMemory.EnsureLoaded();
+
             // Citizens holding their own conversations, and the lines already queued from one.
             DelayedSpeech.Tick();
             NpcConversation.Tick();
+            World.FollowDirector.Tick();
+
+            // The game reclaims the cursor on its own schedule, so a window that wants the
+            // mouse has to keep asking for it.
+            if (SettingsWindow.IsOpen || _open) GameInput.Tick();
+            else if (GameInput.Held) GameInput.Release();
 
             if (Input.GetKeyDown(ModConfig.SettingsHotkey.Value))
             {
+                // Logged unconditionally: if the window ever fails to appear, the first thing
+                // worth knowing is whether the key was seen at all.
+                Plugin.Log.LogInfo("Settings hotkey pressed.");
+
                 // Never leave a half typed line behind when opening settings.
                 if (_open) Close();
                 SettingsWindow.Toggle();
@@ -109,6 +124,7 @@ namespace LooseLips.Dialog
 
         private void OnGUI()
         {
+            GUI.depth = -1000;
             SettingsWindow.Draw();
 
             if (SettingsWindow.IsOpen) return;

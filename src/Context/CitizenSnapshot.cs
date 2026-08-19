@@ -70,5 +70,14 @@ namespace LooseLips.Context
         /// never there - it can only trade on sightings the game actually recorded.
         /// </summary>
         public List<string> CanTestifyAbout = new List<string>();
+
+        /// <summary>What is in their pockets, so the model cannot claim to have nothing.</summary>
+        public List<string> Carrying = new List<string>();
+
+        /// <summary>How many times this person has talked with the investigator before.</summary>
+        public int PriorConversations;
+
+        /// <summary>Whether they are currently tagging along with the investigator.</summary>
+        public bool IsFollowingPlayer;
     }
 }

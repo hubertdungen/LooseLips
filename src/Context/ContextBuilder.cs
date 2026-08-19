@@ -129,6 +129,9 @@ namespace LooseLips.Context
 
             Try(() => s.PermittedEffects.AddRange(WorldEffectExecutor.PermittedEffectNames()));
             Try(() => s.CanTestifyAbout.AddRange(Testimony.PossibleSubjects(citizen)));
+            Try(() => s.Carrying.AddRange(WalletReader.Describe(citizen)));
+            Try(() => s.PriorConversations = ConversationMemory.TurnsWith(citizen.humanID));
+            Try(() => s.IsFollowingPlayer = FollowDirector.IsFollowing(citizen));
 
             return s;
         }
