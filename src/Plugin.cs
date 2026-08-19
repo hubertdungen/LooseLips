@@ -46,6 +46,8 @@ namespace LooseLips
             World.FollowDirector.StopAll();
             World.Allegiance.Clear();
             World.Negotiation.Clear();
+            World.AmbientReactions.Clear();
+            RequestBudget.Reset();
             VanillaLineCapture.Clear();
             return base.Unload();
         }
@@ -58,6 +60,27 @@ namespace LooseLips
     /// </summary>
     public static class SessionHooks
     {
+        /// <summary>
+        /// The game's own signal that a citizen has noticed something worth remarking on. It
+        /// already answers with a canned line; we take the same moment and write one for the
+        /// person who saw it. Wrapped tightly - this postfix shares a chain with other mods.
+        /// </summary>
+        [HarmonyPatch(typeof(DialogController), nameof(DialogController.SeenOrHeardUnusual))]
+        public static class DialogController_SeenOrHeardUnusual
+        {
+            public static void Postfix(Citizen saysTo, Actor saidBy, NewRoom roomRef)
+            {
+                try
+                {
+                    World.AmbientReactions.NoticedSomething(saysTo, saidBy, roomRef);
+                }
+                catch (System.Exception e)
+                {
+                    Plugin.Log.LogWarning("Reaction hook failed: " + e.Message);
+                }
+            }
+        }
+
         /// <summary>
         /// A second chance to build the presets, in case DialogController started before
         /// the string tables were ready. Wrapped tightly: this postfix shares its chain

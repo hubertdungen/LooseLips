@@ -41,6 +41,17 @@ namespace LooseLips.Dialog
             Say(speaker, listener != null ? listener.interactable : null, line, shouted: false, interupt: false);
         }
 
+        /// <summary>
+        /// A citizen speaking at a chosen volume. The engine only has shouting and not
+        /// shouting, so a whisper is delivered as ordinary speech - what makes it a whisper is
+        /// that the rest of the mod treats its reach as barely past arm's length.
+        /// </summary>
+        public static void CitizenSaysAt(Citizen speaker, string line, World.VoiceLevel level)
+        {
+            if (speaker == null) return;
+            Say(speaker, null, line, World.Voice.IsShout(level), interupt: false);
+        }
+
         /// <summary>Placeholder beat while the model is still generating.</summary>
         public static void ShowThinking(Citizen speaker)
         {

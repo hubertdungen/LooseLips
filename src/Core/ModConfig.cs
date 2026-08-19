@@ -27,6 +27,7 @@ namespace LooseLips.Core
         public static ConfigEntry<bool> RememberBetweenSessions;
 
         // --- Voice reach ---
+        public static ConfigEntry<float> WhisperRadius;
         public static ConfigEntry<float> TalkRadius;
         public static ConfigEntry<float> ShoutRadius;
         public static ConfigEntry<bool> ShowVoiceReachMeter;
@@ -38,6 +39,13 @@ namespace LooseLips.Core
         public static ConfigEntry<float> NpcConversationCooldown;
         public static ConfigEntry<int> NpcConversationLines;
         public static ConfigEntry<float> NpcConversationLineGap;
+
+        // --- Ambient life ---
+        public static ConfigEntry<bool> EnableAmbientLife;
+        public static ConfigEntry<int> MaxAmbientPerHour;
+        public static ConfigEntry<float> MinSecondsBetweenAmbient;
+        public static ConfigEntry<float> PerCitizenCooldown;
+        public static ConfigEntry<float> AlarmJumpToReact;
 
         // --- World effects ---
         public static ConfigEntry<bool> EnableWorldEffects;
@@ -117,6 +125,10 @@ namespace LooseLips.Core
                 "Conversations are kept on disk per city, so somebody you talked into something yesterday does " +
                 "not greet you as a stranger today. Stored in BepInEx/LooseLips-memories, keyed by city seed.");
 
+            WhisperRadius = cfg.Bind("Voice reach", "Whispering radius (metres)", 2f,
+                new ConfigDescription("How far a whisper carries. The game only knows shouting from not " +
+                    "shouting, so whispering is this mod's own idea and it is real in the way that counts: reach.",
+                    new AcceptableValueRange<float>(0.5f, 8f)));
             TalkRadius = cfg.Bind("Voice reach", "Talking radius (metres)", 6f,
                 new ConfigDescription("How far a normal spoken line carries.", new AcceptableValueRange<float>(1f, 30f)));
             ShoutRadius = cfg.Bind("Voice reach", "Shouting radius (metres)", 22f,
@@ -141,6 +153,23 @@ namespace LooseLips.Core
             NpcConversationLineGap = cfg.Bind("Overheard", "Gap between lines (seconds)", 3.5f,
                 new ConfigDescription("Spacing, so they take turns instead of talking over each other.",
                     new AcceptableValueRange<float>(1f, 10f)));
+
+            EnableAmbientLife = cfg.Bind("Ambient life", "People react to what happens around them", false,
+                "Citizens near you say something when they notice a crime, get frightened, start a fight or " +
+                "bolt - written for who they are and what they saw, rather than picked from a list. Off by " +
+                "default: every line is a few seconds of your own machine's time.");
+            MaxAmbientPerHour = cfg.Bind("Ambient life", "Most reactions per hour of play", 40,
+                new ConfigDescription("A hard ceiling, whatever else is going on.",
+                    new AcceptableValueRange<int>(0, 400)));
+            MinSecondsBetweenAmbient = cfg.Bind("Ambient life", "Shortest gap between reactions (seconds)", 25f,
+                new ConfigDescription("Only one is ever generated at a time; this is the floor between them.",
+                    new AcceptableValueRange<float>(5f, 300f)));
+            PerCitizenCooldown = cfg.Bind("Ambient life", "Same person again after (seconds)", 120f,
+                new ConfigDescription("Stops one startled neighbour narrating your entire evening.",
+                    new AcceptableValueRange<float>(15f, 900f)));
+            AlarmJumpToReact = cfg.Bind("Ambient life", "Fright needed to set somebody off", 0.25f,
+                new ConfigDescription("How far their alarm must jump in one go before they say something.",
+                    new AcceptableValueRange<float>(0.05f, 1f)));
 
             EnableWorldEffects = cfg.Bind("World effects", "Enable world effects", true,
                 "Master switch. When off, conversations are purely cosmetic.");

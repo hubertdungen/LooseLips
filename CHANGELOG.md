@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.0
+
+The street answers back.
+
+* **People react to what happens around them.** Citizens near you now say something when they
+  notice a crime, when a fight starts, when they bolt, or when something badly frightens them -
+  written for who they are and what they saw, rather than picked from a list. It hangs off the
+  game's own DialogController.SeenOrHeardUnusual for the moments the game announces, and polls
+  for the ones it does not.
+* **Whispering.** Volume is now three levels, not two, and the model picks. The engine only
+  knows shouting from not shouting, so a whisper is delivered as ordinary speech - what makes
+  it a whisper is reach: about two metres, so leaning in to tell somebody something is
+  genuinely private and the room does not overhear. Shouting still carries next door.
+  The situation carries a stated prior, because tested without one a timid character whispered
+  through a brawl - characterful, but it left the shout tier unused.
+* **Rationed on purpose.** A chat request was measured costing no joules at all, so the real
+  ceiling is not credits but your own machine: every line is a few seconds of it, and a street
+  where eight people each react to a gunshot would queue the better part of a minute and
+  arrive after the moment had passed. Ambient life is limited to one generation at a time, a
+  floor between lines, a per-person cooldown and an hourly ceiling - all adjustable, all
+  visible in the settings. Anything you are directly part of is never rationed: a conversation
+  you started always answers first.
+* Off by default. Turn it on in the Talking tab.
+
 ## 0.7.0
 
 A hardening pass. No new powers - the same ones, harder to break.

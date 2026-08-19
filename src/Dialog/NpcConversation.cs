@@ -130,6 +130,8 @@ namespace LooseLips.Dialog
 
         private static void Begin(Citizen a, Citizen b)
         {
+            if (!RequestBudget.TryTake(RequestBudget.Kind.Overheard, a)) return;
+
             _busy = true;
             Cooldowns[PairKey(a, b)] = Time.time + ModConfig.NpcConversationCooldown.Value;
 
@@ -141,6 +143,7 @@ namespace LooseLips.Dialog
             catch (Exception e)
             {
                 _busy = false;
+                RequestBudget.Finished(RequestBudget.Kind.Overheard);
                 Plugin.Log.LogWarning("Could not build a conversation prompt: " + e.Message);
                 return;
             }
@@ -168,6 +171,7 @@ namespace LooseLips.Dialog
                     finally
                     {
                         _busy = false;
+                        RequestBudget.Finished(RequestBudget.Kind.Overheard);
                     }
                 });
             });

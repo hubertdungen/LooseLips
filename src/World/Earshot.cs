@@ -17,16 +17,27 @@ namespace LooseLips.World
         public static float Radius(bool shouted)
             => shouted ? ModConfig.ShoutRadius.Value : ModConfig.TalkRadius.Value;
 
+        public static float Radius(VoiceLevel level) => Voice.RadiusOf(level);
+
+        /// <summary>
+        /// Who can hear a line at a given volume. A whisper reaches barely past the person it
+        /// was meant for; only a shout gets through into the next room.
+        /// </summary>
+        public static List<Citizen> CitizensWhoCanHear(Actor origin, VoiceLevel level)
+            => Gather(origin, Voice.RadiusOf(level), Voice.CarriesNextDoor(level));
+
         /// <summary>
         /// Citizens within earshot of <paramref name="origin"/>. Excludes the player, the
         /// dead, and anyone asleep or unconscious.
         /// </summary>
         public static List<Citizen> CitizensWhoCanHear(Actor origin, bool shouted)
+            => Gather(origin, Radius(shouted), shouted);
+
+        private static List<Citizen> Gather(Actor origin, float radius, bool shouted)
         {
             var result = new List<Citizen>();
             if (origin == null) return result;
 
-            var radius = Radius(shouted);
             var originPos = origin.transform != null ? origin.transform.position : Vector3.zero;
 
             var rooms = new HashSet<NewRoom>();

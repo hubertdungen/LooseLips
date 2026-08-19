@@ -167,6 +167,7 @@ namespace LooseLips.Dialog
 
             GUILayout.Space(10f);
             Header("Voice reach");
+            FloatSlider(ModConfig.WhisperRadius, "Whispering carries", 0.5f, 8f, " m");
             FloatSlider(ModConfig.TalkRadius, "Talking carries", 1f, 30f, " m");
             FloatSlider(ModConfig.ShoutRadius, "Shouting carries", 5f, 90f, " m");
             Toggle(ModConfig.ShowVoiceReachMeter, "Show the reach meter on screen");
@@ -183,6 +184,20 @@ namespace LooseLips.Dialog
                 }
                 catch { }
             }
+
+            GUILayout.Space(10f);
+            Header("People reacting to what happens");
+            Toggle(ModConfig.EnableAmbientLife, "React to crimes, fights, fright and people bolting");
+            if (ModConfig.EnableAmbientLife.Value)
+            {
+                IntSlider(ModConfig.MaxAmbientPerHour, "At most", 0, 400, " per hour");
+                FloatSlider(ModConfig.MinSecondsBetweenAmbient, "No sooner than every", 5f, 300f, " s");
+                FloatSlider(ModConfig.PerCitizenCooldown, "Same person again after", 15f, 900f, " s");
+                GUILayout.Label(Core.RequestBudget.Summary());
+                GUILayout.Label("Last: " + World.AmbientReactions.LastLine);
+            }
+            GUILayout.Label("Each reaction is a few seconds of your own machine. One is generated at a time, " +
+                            "never while you are waiting on a reply of your own.");
 
             GUILayout.Space(10f);
             Header("Citizens talking to each other");

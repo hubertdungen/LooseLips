@@ -95,6 +95,9 @@ namespace LooseLips.Player2
         [JsonConverter(typeof(TolerantJson.FlexibleFloat))]
         public float Truthfulness { get; set; } = 1f;
 
+        /// <summary>How loudly it is said: whisper, normal or shout. Only ambient lines use this.</summary>
+        [JsonPropertyName("voice")] public string Voice { get; set; }
+
         /// <summary>How rattled the citizen is by what was said, 0 to 1.</summary>
         [JsonPropertyName("alarm")]
         [JsonConverter(typeof(TolerantJson.FlexibleFloat))]
