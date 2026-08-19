@@ -1,0 +1,14 @@
+<Project>
+    <PropertyGroup>
+        <Platforms>x64</Platforms>
+        <Configurations>IL2CPP</Configurations>
+        <Configuration Condition="'$(Configuration)'==''">IL2CPP</Configuration>
+        <TargetFramework>net6.0</TargetFramework>
+        <RunPostBuildEvent>Always</RunPostBuildEvent>
+    </PropertyGroup>
+
+    <!-- The user's Thunderstore Mod Manager profile. Change this if you switch profiles. -->
+    <PropertyGroup>
+        <BepInExPath>C:/Users/huber/AppData/Roaming/Thunderstore Mod Manager/DataFolder/ShadowsofDoubt/profiles/Modded/BepInEx/</BepInExPath>
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<AssemblyName>LooseLips</AssemblyName>
+		<Product>Loose Lips</Product>
+		<Description>Talk to anyone in Shadows of Doubt in your own words. A local AI answers, and what it says changes the world.</Description>
+		<RootNamespace>LooseLips</RootNamespace>
+		<Version>0.4.0</Version>
+		<BepInExPluginGuid>dev.hubert.looselips</BepInExPluginGuid>
+		<BepInExPluginName>Loose Lips</BepInExPluginName>
+		<BepInExPluginVersion>0.4.0</BepInExPluginVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>latest</LangVersion>
+		<Nullable>disable</Nullable>
+		<NoWarn>CS0649;CS0169;CS8632;CS0108;NU1603</NoWarn>
+		<RestoreAdditionalProjectSources>
+			https://api.nuget.org/v3/index.json;
+			https://nuget.bepinex.dev/v3/index.json
+		</RestoreAdditionalProjectSources>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="_ref/**" />
+		<None Remove="_ref/**" />
+		<EmbeddedResource Remove="_ref/**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.*" IncludeAssets="compile" />
+		<PackageReference Include="SOD.Common" Version="2.1.1" IncludeAssets="compile" />
+	</ItemGroup>
+
+	<!--
+		Reference the Il2CppInterop proxy assemblies the game actually runs against, not the
+		stock UnityEngine reference assemblies. The proxies derive from Il2CppObjectBase, which
+		is what makes Cast/TryCast and the Il2Cpp collection types available.
+	-->
+	<ItemGroup>
+		<Reference Include="$(BepInExPath)core/Il2CppInterop.Runtime.dll" Private="false" />
+		<Reference Include="$(BepInExPath)interop/*.dll" Private="false" />
+	</ItemGroup>
+</Project>
