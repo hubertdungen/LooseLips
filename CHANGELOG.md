@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0
+
+A hardening pass. No new powers - the same ones, harder to break.
+
+* **Effects are declared once.** Name, description, config gate, aliases, contradictions and
+  handler are now one entry in a catalogue, and the vocabulary sent to the model is generated
+  from the same list that dispatches it. Before, three hand-maintained lists had to agree, and
+  nothing enforced it: an effect could be offered and never handled, and the symptom of that
+  is a citizen who says they will do something and does not. Adding an effect is now one entry.
+* **A single malformed field no longer costs the whole turn.** Deserialisation was all or
+  nothing, so "effects": ["flee"] instead of a list of objects, or "truthfulness": "0.8" as a
+  string, threw - and the reply fell back to being treated as prose, which carries no effects,
+  no relationship movement and no alarm. Every field a model can plausibly get slightly wrong
+  is now read leniently.
+* **Effect names are folded.** "Give Money", "give-money", "giveMoney" and "GIVE_MONEY" all
+  reach give_money, plus 46 aliases for the words models reach for instead.
+* **Contradictions and duplicates are resolved.** A citizen cannot flee and attack in one
+  breath: effects are grouped, the first of a group wins, and the rest are refused with a
+  reason. The same effect twice is one effect. The outcome no longer depends on the order the
+  model happened to list them in.
+* **Replies that arrive too late are dropped safely.** A citizen can be despawned during the
+  seconds a request is in flight, and a destroyed object does not always read as null.
+* Added an off-engine test harness under tests/, covering name folding, every reply shape and
+  the number-format cases. 25 checks, run with `dotnet run` from that folder.
+
 ## 0.6.0
 
 * **Fixed the police being turned on you when you reported a crime.** The effect was called

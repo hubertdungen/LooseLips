@@ -2,3 +2,5 @@ _ref/
 bin/
 obj/
 dist/
+tests/bin/
+tests/obj/

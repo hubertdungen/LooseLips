@@ -75,7 +75,9 @@ namespace LooseLips.Player2
 
     public sealed class RelationshipDelta
     {
-        [JsonPropertyName("like")] public float Like { get; set; }
+        [JsonPropertyName("like")]
+        [JsonConverter(typeof(TolerantJson.FlexibleFloat))]
+        public float Like { get; set; }
         [JsonPropertyName("known")] public float Known { get; set; }
         [JsonPropertyName("suspicion")] public float Suspicion { get; set; }
     }
@@ -89,14 +91,22 @@ namespace LooseLips.Player2
         [JsonPropertyName("speech")] public string Speech { get; set; }
 
         /// <summary>0 = deliberate lie, 1 = fully honest. Drives which facts may be fabricated.</summary>
-        [JsonPropertyName("truthfulness")] public float Truthfulness { get; set; } = 1f;
+        [JsonPropertyName("truthfulness")]
+        [JsonConverter(typeof(TolerantJson.FlexibleFloat))]
+        public float Truthfulness { get; set; } = 1f;
 
         /// <summary>How rattled the citizen is by what was said, 0 to 1.</summary>
-        [JsonPropertyName("alarm")] public float Alarm { get; set; }
+        [JsonPropertyName("alarm")]
+        [JsonConverter(typeof(TolerantJson.FlexibleFloat))]
+        public float Alarm { get; set; }
 
-        [JsonPropertyName("effects")] public List<WorldEffect> Effects { get; set; } = new List<WorldEffect>();
+        [JsonPropertyName("effects")]
+        [JsonConverter(typeof(TolerantJson.FlexibleEffectList))]
+        public List<WorldEffect> Effects { get; set; } = new List<WorldEffect>();
 
-        [JsonPropertyName("relationship_delta")] public RelationshipDelta RelationshipDelta { get; set; }
+        [JsonPropertyName("relationship_delta")]
+        [JsonConverter(typeof(TolerantJson.FlexibleRelationship))]
+        public RelationshipDelta RelationshipDelta { get; set; }
 
         /// <summary>
         /// Exactly what the model sent back, before parsing. Kept so a playtest transcript can

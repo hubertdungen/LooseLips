@@ -28,78 +28,159 @@ namespace LooseLips.World
             public void Reject(string effect, string reason) => Rejected.Add(effect + " (" + reason + ")");
         }
 
+        private static bool _registered;
+
+        /// <summary>
+        /// Declare every effect once: name, how it is explained to the model, the setting that
+        /// gates it, what it contradicts, and what it does. The vocabulary sent to the model is
+        /// generated from this same list, so the two can never disagree.
+        /// </summary>
+        public static void RegisterAll()
+        {
+            if (_registered) return;
+            _registered = true;
+
+            // --- Mood -----------------------------------------------------------
+            Add("end_conversation", "you walk away and refuse to keep talking",
+                r => EndConversation(r.Speaker));
+            Add("calm_down", "you settle, becoming less alarmed",
+                r => ShiftAlertness(r.Speaker, -0.3f), conflicts: "mood",
+                aliases: new[] { "calm", "relax" });
+            Add("alarm", "you become noticeably more frightened",
+                r => ShiftAlertness(r.Speaker, +0.3f), conflicts: "mood",
+                aliases: new[] { "panic", "get_scared" });
+            Add("answer_door", "you go and open the door",
+                r => AnswerDoor(r.Speaker));
+
+            // --- Standing and running -------------------------------------------
+            Add("flee", "you turn and run; put a name in target to get away from somebody else",
+                r => Flee(r.Speaker, r.Target),
+                gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
+                aliases: new[] { "run", "run_away", "escape" });
+            Add("attack", "you attack somebody; leave target empty for the investigator, or put a name",
+                r => Attack(r.Speaker, r.Target, r.Shouted),
+                gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
+                aliases: new[] { "fight", "assault", "strike" });
+            Add("surrender", "you stop fighting and give yourself up",
+                r => Surrender(r.Speaker),
+                gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
+                aliases: new[] { "give_up", "yield" });
+
+            // --- Handing things over --------------------------------------------
+            Add("give_item", "you hand over the item you are holding",
+                r => GiveHeldItem(r.Speaker),
+                gate: () => ModConfig.AllowItemHandover.Value,
+                aliases: new[] { "hand_over", "give", "give_object" });
+            Add("give_money", "you hand over cash you are carrying; put the amount in target",
+                r => WalletReader.GiveMoney(r.Speaker, r.Target),
+                gate: () => ModConfig.AllowMoneyHandover.Value,
+                aliases: new[] { "give_cash", "pay_them", "hand_over_money" });
+
+            // --- Taking sides ----------------------------------------------------
+            Add("side_with_them", "you decide you are on this investigator's side and will back them up",
+                r => Allegiance.SideWith(r.Speaker),
+                gate: () => ModConfig.AllowAllegiance.Value, conflicts: "allegiance",
+                aliases: new[] { "ally", "join_them", "help_them" });
+            Add("turn_against_them", "you decide you are against this investigator",
+                r => Allegiance.TurnAgainst(r.Speaker),
+                gate: () => ModConfig.AllowAllegiance.Value, conflicts: "allegiance",
+                aliases: new[] { "oppose_them", "become_hostile" });
+
+            // --- Money for words -------------------------------------------------
+            Add("name_a_price", "you will talk, for money; put the amount in target and what for in detail",
+                r => Negotiation.Demand_(r.Speaker, r.Target, r.Detail),
+                gate: () => ModConfig.AllowNegotiation.Value, conflicts: "deal",
+                aliases: new[] { "demand_payment", "ask_for_money", "set_price" });
+            Add("take_the_money", "they have agreed to a price you already named, so you take it",
+                r => Negotiation.TakePayment(r.Speaker),
+                gate: () => ModConfig.AllowNegotiation.Value, conflicts: "deal",
+                aliases: new[] { "accept_payment", "take_payment" });
+
+            // --- Coming along -----------------------------------------------------
+            Add("follow", "you agree to come along with the investigator",
+                r => FollowDirector.Start(r.Speaker),
+                gate: () => ModConfig.AllowFollowing.Value, conflicts: "escort",
+                aliases: new[] { "follow_them", "come_along", "accompany" });
+            Add("stop_following", "you have had enough and stop going with them",
+                r => FollowDirector.Stop(r.Speaker),
+                gate: () => ModConfig.AllowFollowing.Value, conflicts: "escort",
+                aliases: new[] { "leave_them", "stop_follow" });
+
+            // --- The police -------------------------------------------------------
+            // Named by direction. An earlier "call_police" read as calling them for help and in
+            // fact set them on the investigator, so reporting a mugging got the player held at
+            // gunpoint. Nothing here can be read the wrong way round.
+            Add("report_the_investigator", "you turn the police on the investigator themselves",
+                r => SetOfficerPursuit(r.Speaker, Player.Instance, r.Shouted),
+                gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police",
+                aliases: new[] { "report_them", "report_the_player" });
+            Add("send_police_after", "you set the police on somebody else here; put their name in target",
+                r => AccuseOther(r.Speaker, r.Target, r.Shouted),
+                gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police",
+                aliases: new[] { "accuse" });
+            Add("call_police_off", "you call the police off the investigator",
+                r => CallOffOfficers(r.Speaker, r.Shouted),
+                gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police",
+                aliases: new[] { "protect", "vouch_for_them" });
+
+            // Accepted but never offered: only honoured when a target settles the ambiguity.
+            Add("call_police", null,
+                r => string.IsNullOrWhiteSpace(r.Target)
+                    ? "ambiguous - use report_the_investigator or send_police_after"
+                    : AccuseOther(r.Speaker, r.Target, r.Shouted),
+                gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police");
+
+            // --- What they saw -----------------------------------------------------
+            Add("tell_what_i_saw", "you give up where and when you saw someone; put their name in target",
+                r => Testimony.RevealSighting(r.Speaker, r.Target),
+                gate: () => ModConfig.AllowTestimony.Value,
+                aliases: new[] { "testify", "reveal_sighting", "tell_what_i_know" });
+
+            // --- Going somewhere ----------------------------------------------------
+            Add("go", "you drop what you were doing and leave; put go_home, go_to_work, go_to_bed or leave in target",
+                r => GoalDirector.Send(r.Speaker, r.Target),
+                gate: () => ModConfig.AllowGoalRedirection.Value, conflicts: "errand",
+                aliases: new[] { "leave", "go_away", "depart" });
+            Add("come_and_look", "you go over to see what the fuss is about",
+                r => GoalDirector.InvestigateHere(r.Speaker, r.Shouted),
+                gate: () => ModConfig.AllowGoalRedirection.Value, conflicts: "errand",
+                aliases: new[] { "investigate", "come_over" });
+
+            // --- Everyone who heard --------------------------------------------------
+            Add("crowd_panic", "everyone who heard you scatters",
+                r => CrowdEffects.Panic(r.Speaker, r.Shouted),
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+            Add("crowd_settle", "everyone who heard you calms down",
+                r => CrowdEffects.Settle(r.Speaker, r.Shouted),
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+            Add("crowd_gather", "everyone who heard you comes over to look",
+                r => CrowdEffects.Gather(r.Speaker, r.Shouted),
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+        }
+
+        private static void Add(string name, string description, Func<EffectCatalogue.Request, string> run,
+                                Func<bool> gate = null, string conflicts = null, string[] aliases = null)
+        {
+            EffectCatalogue.Register(new EffectCatalogue.Definition
+            {
+                Name = name,
+                Description = description,
+                Run = run,
+                Enabled = gate ?? (() => true),
+                Conflicts = conflicts,
+                Aliases = aliases ?? new string[0]
+            });
+        }
+
         /// <summary>Effect vocabulary offered to the model, filtered by config.</summary>
         public static IEnumerable<string> PermittedEffectNames()
         {
             if (!ModConfig.EnableWorldEffects.Value) yield break;
 
-            yield return "end_conversation - you walk away and refuse to keep talking";
-            yield return "calm_down - you settle, becoming less alarmed";
-            yield return "alarm - you become noticeably more frightened";
-
-            if (ModConfig.AllowCombatEffects.Value)
+            RegisterAll();
+            foreach (var definition in EffectCatalogue.Offered())
             {
-                yield return "flee - you turn and run; put a name in target to get away from somebody else";
-                yield return "attack - you attack somebody; leave target empty for the investigator, or put a name";
-                yield return "surrender - you stop fighting and give yourself up";
-            }
-
-            if (ModConfig.AllowItemHandover.Value)
-            {
-                yield return "give_item - you hand over the item you are holding";
-            }
-
-            if (ModConfig.AllowMoneyHandover.Value)
-            {
-                yield return "give_money - you hand over cash you are carrying; put the amount in target";
-            }
-
-            if (ModConfig.AllowAllegiance.Value)
-            {
-                yield return "side_with_them - you decide you are on this investigator's side and will back them up";
-                yield return "turn_against_them - you decide you are against this investigator";
-            }
-
-            if (ModConfig.AllowNegotiation.Value)
-            {
-                yield return "name_a_price - you will talk, for money; put the amount in target and what for in detail";
-                yield return "take_the_money - they have agreed to a price you already named, so you take it";
-            }
-
-            if (ModConfig.AllowFollowing.Value)
-            {
-                yield return "follow - you agree to come along with the investigator";
-                yield return "stop_following - you have had enough and stop going with them";
-            }
-
-            if (ModConfig.AllowPoliceRedirection.Value)
-            {
-                // Named so the direction cannot be misread. An earlier version offered
-                // "call_police", which reads as calling them for help and in fact set them on
-                // the investigator - so reporting a mugging got the player held at gunpoint.
-                yield return "report_the_investigator - you turn the police on the investigator themselves";
-                yield return "send_police_after - you set the police on somebody else here; put their name in target";
-                yield return "call_police_off - you call the police off the investigator";
-            }
-
-            yield return "answer_door - you go and open the door";
-
-            if (ModConfig.AllowTestimony.Value)
-            {
-                yield return "tell_what_i_saw - you give up where and when you saw someone; put their name in target";
-            }
-
-            if (ModConfig.AllowGoalRedirection.Value)
-            {
-                yield return "go - you drop what you were doing and leave; put go_home, go_to_work, go_to_bed or leave in target";
-                yield return "come_and_look - you go over to see what the fuss is about";
-            }
-
-            if (ModConfig.AllowCrowdEffects.Value)
-            {
-                yield return "crowd_panic - everyone who heard you scatters";
-                yield return "crowd_settle - everyone who heard you calms down";
-                yield return "crowd_gather - everyone who heard you comes over to look";
+                yield return definition.Name + " - " + definition.Description;
             }
         }
 
@@ -107,8 +188,14 @@ namespace LooseLips.World
         public static EffectReport Apply(Citizen speaker, NpcReply reply, bool shouted)
         {
             var report = new EffectReport();
-            if (speaker == null || reply == null) return report;
+            if (reply == null) return report;
+            if (!IsUsable(speaker))
+            {
+                report.Reject("everything", "the person is gone");
+                return report;
+            }
 
+            RegisterAll();
             ApplyRelationship(speaker, reply, report);
 
             if (!ModConfig.EnableWorldEffects.Value)
@@ -122,72 +209,87 @@ namespace LooseLips.World
 
             if (reply.Effects == null) return report;
 
+            var alreadyRun = new HashSet<string>();
+            var groupsUsed = new Dictionary<string, string>();
+
             foreach (var effect in reply.Effects)
             {
                 if (effect == null || string.IsNullOrWhiteSpace(effect.Type)) continue;
 
-                var name = effect.Type.Trim().ToLowerInvariant();
+                var written = effect.Type.Trim();
+                var definition = EffectCatalogue.Find(written);
+
+                if (definition == null)
+                {
+                    report.Reject(written, "not an effect this mod knows");
+                    continue;
+                }
+
+                if (!definition.Enabled())
+                {
+                    report.Reject(definition.Name, "switched off in the settings");
+                    continue;
+                }
+
+                // The same effect twice in one reply is one effect.
+                if (!alreadyRun.Add(definition.Name)) continue;
+
+                // Contradictions: the first one asked for wins, so the outcome does not depend
+                // on the order a model happened to list them in.
+                if (!string.IsNullOrEmpty(definition.Conflicts))
+                {
+                    string winner;
+                    if (groupsUsed.TryGetValue(definition.Conflicts, out winner))
+                    {
+                        report.Reject(definition.Name, "contradicts " + winner);
+                        continue;
+                    }
+                    groupsUsed[definition.Conflicts] = definition.Name;
+                }
+
                 try
                 {
-                    var refusal = Dispatch(speaker, name, effect, shouted);
-                    if (refusal == null) report.Applied.Add(name);
-                    else report.Reject(name, refusal);
+                    var refusal = definition.Run(new EffectCatalogue.Request
+                    {
+                        Speaker = speaker,
+                        Target = effect.Target,
+                        Detail = effect.Detail,
+                        Shouted = shouted
+                    });
+
+                    if (refusal == null) report.Applied.Add(definition.Name);
+                    else report.Reject(definition.Name, refusal);
                 }
                 catch (Exception e)
                 {
-                    report.Reject(name, "threw: " + e.Message);
-                    Plugin.Log.LogWarning("Effect " + name + " threw: " + e.Message);
+                    report.Reject(definition.Name, "threw: " + e.Message);
+                    Plugin.Log.LogWarning("Effect " + definition.Name + " threw: " + e.Message);
                 }
             }
 
             return report;
         }
 
-        /// <summary>Returns null when the effect ran, or a short reason why it did not.</summary>
-        private static string Dispatch(Citizen speaker, string name, WorldEffect effect, bool shouted)
+        /// <summary>
+        /// Whether this citizen can still be acted on. A reply can arrive seconds after it was
+        /// asked for, by which time the person may have been despawned, and a destroyed object
+        /// does not always compare equal to null from managed code.
+        /// </summary>
+        private static bool IsUsable(Citizen citizen)
         {
-            switch (name)
+            if (citizen == null) return false;
+            try
             {
-                case "end_conversation": return EndConversation(speaker);
-                case "calm_down": return ShiftAlertness(speaker, -0.3f);
-                case "alarm": return ShiftAlertness(speaker, +0.3f);
-                case "flee": return Flee(speaker, effect.Target);
-                case "attack": return Attack(speaker, effect.Target, shouted);
-                case "surrender": return Surrender(speaker);
-                case "give_item": return GiveHeldItem(speaker);
-                case "give_money": return WalletReader.GiveMoney(speaker, effect.Target);
-                case "side_with_them": return Allegiance.SideWith(speaker);
-                case "turn_against_them": return Allegiance.TurnAgainst(speaker);
-                case "name_a_price": return Negotiation.Demand_(speaker, effect.Target, effect.Detail);
-                case "take_the_money": return Negotiation.TakePayment(speaker);
-
-                case "follow": return FollowDirector.Start(speaker);
-                case "stop_following": return FollowDirector.Stop(speaker);
-                case "report_the_investigator": return SetOfficerPursuit(speaker, Player.Instance, shouted);
-                case "send_police_after": return AccuseOther(speaker, effect.Target, shouted);
-                case "call_police_off": return CallOffOfficers(speaker, shouted);
-
-                // Older names. "call_police" was ambiguous in the one direction that matters,
-                // so it is only honoured when a target makes the intent explicit.
-                case "protect": return CallOffOfficers(speaker, shouted);
-                case "accuse": return AccuseOther(speaker, effect.Target, shouted);
-                case "call_police":
-                    return string.IsNullOrWhiteSpace(effect.Target)
-                        ? "ambiguous - use report_the_investigator or send_police_after"
-                        : AccuseOther(speaker, effect.Target, shouted);
-                case "answer_door": return AnswerDoor(speaker);
-
-                case "tell_what_i_saw": return Testimony.RevealSighting(speaker, effect.Target);
-                case "go": return GoalDirector.Send(speaker, effect.Target);
-                case "come_and_look": return GoalDirector.InvestigateHere(speaker, shouted);
-
-                case "crowd_panic": return CrowdEffects.Panic(speaker, shouted);
-                case "crowd_settle": return CrowdEffects.Settle(speaker, shouted);
-                case "crowd_gather": return CrowdEffects.Gather(speaker, shouted);
-
-                default: return "not an effect this mod knows";
+                if (citizen.Pointer == IntPtr.Zero) return false;
+                var unused = citizen.humanID;
+                return !citizen.isDead;
+            }
+            catch
+            {
+                return false;
             }
         }
+
 
         // --- Relationship -------------------------------------------------------
 

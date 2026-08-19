@@ -4,10 +4,10 @@
 		<Product>Loose Lips</Product>
 		<Description>Talk to anyone in Shadows of Doubt in your own words. A local AI answers, and what it says changes the world.</Description>
 		<RootNamespace>LooseLips</RootNamespace>
-		<Version>0.6.0</Version>
+		<Version>0.7.0</Version>
 		<BepInExPluginGuid>dev.hubert.looselips</BepInExPluginGuid>
 		<BepInExPluginName>Loose Lips</BepInExPluginName>
-		<BepInExPluginVersion>0.6.0</BepInExPluginVersion>
+		<BepInExPluginVersion>0.7.0</BepInExPluginVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>disable</Nullable>
@@ -20,6 +20,10 @@
 
 	<ItemGroup>
 		<Compile Remove="_ref/**" />
+		<!-- The off-engine test harness compiles the pure sources itself; it must not be
+		     pulled into the mod assembly. -->
+		<Compile Remove="tests/**" />
+		<None Remove="tests/**" />
 		<None Remove="_ref/**" />
 		<EmbeddedResource Remove="_ref/**" />
 	</ItemGroup>
