@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.0
+
+* **Fixed the police being turned on you when you reported a crime.** The effect was called
+  "call_police", which reads as calling them for help, and in fact set every officer in
+  earshot onto the investigator - so telling an enforcer you were being mugged got you held
+  at gunpoint. The vocabulary is now directional and cannot be misread:
+  report_the_investigator, send_police_after (needs a name), call_police_off. The old name is
+  only honoured when a target makes the intent explicit, and refused with a reason otherwise.
+* **Friend or foe.** Somebody can be talked into taking your side, or turned against you.
+  Liking you is a feeling and siding with you is a decision, so the two are tracked
+  separately: an ally has to like you past a threshold first, and cannot be declared into
+  existence from nothing. Allies who are close enough, and not already panicking, will go
+  after whoever is attacking you. Frightening an ally badly enough takes them out of the
+  fight, so loyalty is something you keep rather than something you set.
+* **Haggling.** A citizen can name a price for what they know, and be paid it out of your own
+  money. The price has to be named in one turn and settled in another, so nothing can be
+  invented and paid for in the same breath, and payment is refused unless the demand was
+  really made and you really have the money. Paying in full buys goodwill.
+* **Fleeing from a named person.** The game's flee state is a mood with no direction, so this
+  is fleeing plus heading home, which is what actually puts distance between them.
+
 ## 0.5.0
 
 Fixes the settings window, and closes most of the gap between what the mod could do and

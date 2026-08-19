@@ -36,6 +36,7 @@ namespace LooseLips.Context
             sb.AppendLine("# The person talking to you");
             sb.AppendLine("A private investigator. " + DescribeFamiliarity(s));
             sb.AppendLine("How much you like them: " + Band(s.Like, "you despise them", "you are wary of them", "you are neutral", "you are friendly", "you trust them completely"));
+            if (!string.IsNullOrEmpty(s.AllegianceNote)) sb.AppendLine(s.AllegianceNote);
             if (s.ConnectionsToPlayer.Count > 0)
                 sb.AppendLine("Your connection to them: " + string.Join(", ", s.ConnectionsToPlayer));
             sb.AppendLine();
@@ -124,6 +125,7 @@ namespace LooseLips.Context
             if (s.IsEnforcer) sb.AppendLine("You are a law enforcement officer" + (s.IsOnDuty ? " on duty." : ", off duty."));
             if (s.IsRestrained) sb.AppendLine("You are restrained and cannot move.");
             if (s.IsFollowingPlayer) sb.AppendLine("You are currently going along with this investigator.");
+            if (!string.IsNullOrEmpty(s.PendingDemand)) sb.AppendLine(s.PendingDemand);
             if (s.InCombat) sb.AppendLine("You are in the middle of a fight.");
             if (s.IsFleeing) sb.AppendLine("You are trying to run away.");
 

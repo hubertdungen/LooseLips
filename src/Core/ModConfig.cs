@@ -54,6 +54,14 @@ namespace LooseLips.Core
         public static ConfigEntry<float> FollowDuration;
         public static ConfigEntry<float> FollowNudgeInterval;
         public static ConfigEntry<float> FollowGiveUpDistance;
+        public static ConfigEntry<bool> AllowAllegiance;
+        public static ConfigEntry<bool> AlliesDefendYou;
+        public static ConfigEntry<float> AllyLikeThreshold;
+        public static ConfigEntry<float> AllyNerveThreshold;
+        public static ConfigEntry<bool> AllowNegotiation;
+        public static ConfigEntry<int> MaxDemand;
+        public static ConfigEntry<float> DemandExpiry;
+        public static ConfigEntry<float> PaymentGoodwill;
         public static ConfigEntry<float> MaxLikeShiftPerLine;
         public static ConfigEntry<float> MaxSuspicionShiftPerLine;
 
@@ -170,6 +178,31 @@ namespace LooseLips.Core
             FollowGiveUpDistance = cfg.Bind("World effects", "They give up beyond (metres)", 45f,
                 new ConfigDescription("Outrun somebody by this much and they stop bothering.",
                     new AcceptableValueRange<float>(10f, 200f)));
+
+            AllowAllegiance = cfg.Bind("World effects", "Allow people to take sides", true,
+                "Somebody can be talked into siding with you, or turned against you. Liking you is a feeling; " +
+                "taking your side is a decision, and it is tracked separately.");
+            AlliesDefendYou = cfg.Bind("World effects", "Allies step in when you are attacked", true,
+                "An ally who is close enough, and not already panicking, will go after whoever is attacking you.");
+            AllyLikeThreshold = cfg.Bind("World effects", "Liking needed before somebody sides with you", 0.6f,
+                new ConfigDescription("Below this they refuse, however good the argument.",
+                    new AcceptableValueRange<float>(0f, 1f)));
+            AllyNerveThreshold = cfg.Bind("World effects", "Allies too frightened to help above", 0.75f,
+                new ConfigDescription("An ally more alarmed than this stays out of it.",
+                    new AcceptableValueRange<float>(0f, 1f)));
+
+            AllowNegotiation = cfg.Bind("World effects", "Allow haggling and paying people", true,
+                "Citizens can name a price for what they know, and be paid it out of your own money. " +
+                "The price has to be named in one turn and settled in another, so nothing can be invented " +
+                "and paid in the same breath.");
+            MaxDemand = cfg.Bind("World effects", "Most anyone will ask for", 500,
+                new ConfigDescription("", new AcceptableValueRange<int>(0, 10000)));
+            DemandExpiry = cfg.Bind("World effects", "A price stands for (seconds)", 180f,
+                new ConfigDescription("How long they wait before the offer is off.",
+                    new AcceptableValueRange<float>(30f, 1200f)));
+            PaymentGoodwill = cfg.Bind("World effects", "Goodwill bought by paying up", 0.2f,
+                new ConfigDescription("How much being paid in full improves how they feel about you.",
+                    new AcceptableValueRange<float>(0f, 1f)));
 
             MaxLikeShiftPerLine = cfg.Bind("World effects", "Maximum like shift per line", 0.15f,
                 new ConfigDescription("Caps how much one sentence can move a relationship.",

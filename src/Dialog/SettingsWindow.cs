@@ -229,6 +229,15 @@ namespace LooseLips.Dialog
                     ? "Nobody is with you."
                     : "With you: " + string.Join(", ", names));
             }
+            Toggle(ModConfig.AllowAllegiance, "Take your side, or turn against you");
+            if (ModConfig.AllowAllegiance.Value)
+            {
+                Toggle(ModConfig.AlliesDefendYou, "Allies step in when you are attacked");
+                FloatSlider(ModConfig.AllyLikeThreshold, "Liking needed to side with you", 0f, 1f, "");
+            }
+            Toggle(ModConfig.AllowNegotiation, "Name a price, and be paid it");
+            if (ModConfig.AllowNegotiation.Value)
+                IntSlider(ModConfig.MaxDemand, "Most anyone will ask", 0, 10000, "");
             Toggle(ModConfig.AllowTestimony, "Give up where and when they saw somebody");
             GUILayout.Label("Uses the game's own witness mechanism, so what they give you is a real lead in the " +
                             "case file - and they can only name people they actually saw.");

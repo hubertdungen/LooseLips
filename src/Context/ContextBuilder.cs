@@ -132,6 +132,8 @@ namespace LooseLips.Context
             Try(() => s.Carrying.AddRange(WalletReader.Describe(citizen)));
             Try(() => s.PriorConversations = ConversationMemory.TurnsWith(citizen.humanID));
             Try(() => s.IsFollowingPlayer = FollowDirector.IsFollowing(citizen));
+            Try(() => s.AllegianceNote = Allegiance.Describe(citizen));
+            Try(() => s.PendingDemand = Negotiation.PendingFor(citizen));
 
             return s;
         }

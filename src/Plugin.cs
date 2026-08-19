@@ -44,6 +44,8 @@ namespace LooseLips
             ConversationMemory.Save();
             ConversationMemory.Clear();
             World.FollowDirector.StopAll();
+            World.Allegiance.Clear();
+            World.Negotiation.Clear();
             VanillaLineCapture.Clear();
             return base.Unload();
         }

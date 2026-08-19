@@ -39,7 +39,7 @@ namespace LooseLips.World
 
             if (ModConfig.AllowCombatEffects.Value)
             {
-                yield return "flee - you turn and run from the investigator";
+                yield return "flee - you turn and run; put a name in target to get away from somebody else";
                 yield return "attack - you attack somebody; leave target empty for the investigator, or put a name";
                 yield return "surrender - you stop fighting and give yourself up";
             }
@@ -54,6 +54,18 @@ namespace LooseLips.World
                 yield return "give_money - you hand over cash you are carrying; put the amount in target";
             }
 
+            if (ModConfig.AllowAllegiance.Value)
+            {
+                yield return "side_with_them - you decide you are on this investigator's side and will back them up";
+                yield return "turn_against_them - you decide you are against this investigator";
+            }
+
+            if (ModConfig.AllowNegotiation.Value)
+            {
+                yield return "name_a_price - you will talk, for money; put the amount in target and what for in detail";
+                yield return "take_the_money - they have agreed to a price you already named, so you take it";
+            }
+
             if (ModConfig.AllowFollowing.Value)
             {
                 yield return "follow - you agree to come along with the investigator";
@@ -62,9 +74,12 @@ namespace LooseLips.World
 
             if (ModConfig.AllowPoliceRedirection.Value)
             {
-                yield return "call_police - nearby officers are told to go after the investigator";
-                yield return "protect - nearby officers are called off the investigator";
-                yield return "accuse - nearby officers are sent after someone else; put their name in target";
+                // Named so the direction cannot be misread. An earlier version offered
+                // "call_police", which reads as calling them for help and in fact set them on
+                // the investigator - so reporting a mugging got the player held at gunpoint.
+                yield return "report_the_investigator - you turn the police on the investigator themselves";
+                yield return "send_police_after - you set the police on somebody else here; put their name in target";
+                yield return "call_police_off - you call the police off the investigator";
             }
 
             yield return "answer_door - you go and open the door";
@@ -136,16 +151,30 @@ namespace LooseLips.World
                 case "end_conversation": return EndConversation(speaker);
                 case "calm_down": return ShiftAlertness(speaker, -0.3f);
                 case "alarm": return ShiftAlertness(speaker, +0.3f);
-                case "flee": return Flee(speaker);
+                case "flee": return Flee(speaker, effect.Target);
                 case "attack": return Attack(speaker, effect.Target, shouted);
                 case "surrender": return Surrender(speaker);
                 case "give_item": return GiveHeldItem(speaker);
                 case "give_money": return WalletReader.GiveMoney(speaker, effect.Target);
+                case "side_with_them": return Allegiance.SideWith(speaker);
+                case "turn_against_them": return Allegiance.TurnAgainst(speaker);
+                case "name_a_price": return Negotiation.Demand_(speaker, effect.Target, effect.Detail);
+                case "take_the_money": return Negotiation.TakePayment(speaker);
+
                 case "follow": return FollowDirector.Start(speaker);
                 case "stop_following": return FollowDirector.Stop(speaker);
-                case "call_police": return SetOfficerPursuit(speaker, Player.Instance, shouted);
+                case "report_the_investigator": return SetOfficerPursuit(speaker, Player.Instance, shouted);
+                case "send_police_after": return AccuseOther(speaker, effect.Target, shouted);
+                case "call_police_off": return CallOffOfficers(speaker, shouted);
+
+                // Older names. "call_police" was ambiguous in the one direction that matters,
+                // so it is only honoured when a target makes the intent explicit.
                 case "protect": return CallOffOfficers(speaker, shouted);
                 case "accuse": return AccuseOther(speaker, effect.Target, shouted);
+                case "call_police":
+                    return string.IsNullOrWhiteSpace(effect.Target)
+                        ? "ambiguous - use report_the_investigator or send_police_after"
+                        : AccuseOther(speaker, effect.Target, shouted);
                 case "answer_door": return AnswerDoor(speaker);
 
                 case "tell_what_i_saw": return Testimony.RevealSighting(speaker, effect.Target);
@@ -257,7 +286,12 @@ namespace LooseLips.World
             }
         }
 
-        private static string Flee(Citizen speaker)
+        /// <summary>
+        /// Run. The game's flee state has no target - it is a mood, not a direction - so getting
+        /// away from a particular person is approximated by fleeing and then heading home, which
+        /// is what actually puts distance between them.
+        /// </summary>
+        private static string Flee(Citizen speaker, string fromWhom)
         {
             if (!ModConfig.AllowCombatEffects.Value) return "fleeing and combat are switched off";
             if (speaker.ai == null) return "no AI on this citizen";
@@ -266,6 +300,14 @@ namespace LooseLips.World
             speaker.ai.CancelCombat();
             speaker.ai.inFleeState = true;
             speaker.ai.TriggerReactionIndicator();
+
+            if (!string.IsNullOrWhiteSpace(fromWhom))
+            {
+                // Somewhere to run to, rather than just away. Failure here is not failure of the
+                // flee itself, so it is not reported as one.
+                GoalDirector.Send(speaker, "go_home");
+            }
+
             return null;
         }
 

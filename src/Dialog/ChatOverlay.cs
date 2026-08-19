@@ -97,6 +97,7 @@ namespace LooseLips.Dialog
             DelayedSpeech.Tick();
             NpcConversation.Tick();
             World.FollowDirector.Tick();
+            World.Allegiance.DefendPlayer();
 
             // The game reclaims the cursor on its own schedule, so a window that wants the
             // mouse has to keep asking for it.

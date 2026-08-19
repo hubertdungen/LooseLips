@@ -79,5 +79,11 @@ namespace LooseLips.Context
 
         /// <summary>Whether they are currently tagging along with the investigator.</summary>
         public bool IsFollowingPlayer;
+
+        /// <summary>Whether they have taken a side, and which.</summary>
+        public string AllegianceNote;
+
+        /// <summary>An unsettled price they have already named.</summary>
+        public string PendingDemand;
     }
 }
