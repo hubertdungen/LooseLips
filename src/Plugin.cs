@@ -48,6 +48,7 @@ namespace LooseLips
             World.Negotiation.Clear();
             World.AmbientReactions.Clear();
             RequestBudget.Reset();
+            Player2.Player2Status.Reset();
             VanillaLineCapture.Clear();
             return base.Unload();
         }

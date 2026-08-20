@@ -46,6 +46,13 @@ namespace LooseLips.Player2
         [JsonPropertyName("voice_ids")] public List<string> VoiceIds { get; set; }
     }
 
+    /// <summary>GET /v1/joules - what is left to spend, and on what plan.</summary>
+    public sealed class JouleReading
+    {
+        [JsonPropertyName("joules")] public int Joules { get; set; }
+        [JsonPropertyName("patron_tier")] public string Tier { get; set; }
+    }
+
     /// <summary>One entry from GET /v1/tts/voices.</summary>
     public sealed class Voice
     {

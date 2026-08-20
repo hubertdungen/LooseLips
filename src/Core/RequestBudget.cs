@@ -7,15 +7,20 @@ namespace LooseLips.Core
     /// <summary>
     /// Decides what is allowed to ask the model, and refuses the rest.
     ///
-    /// The scarce thing here is not money. A chat request was measured costing no joules at
-    /// all on this account, because the model runs on your own machine - what it costs is
-    /// three to seven seconds of it. That is the real ceiling: a street where eight people
-    /// each react to a gunshot would queue the better part of a minute of generation, arrive
-    /// long after the moment had passed, and make the whole mod feel broken.
+    /// Two things are scarce, and an early measurement got one of them wrong. A single request
+    /// appeared to cost no credits at all, which was rounding: measured across several, an
+    /// exchange of roughly 750 tokens costs about a third of a credit, and the balance refills
+    /// over time. On a well stocked account that is invisible; on a free one it is the whole
+    /// story, so the ceiling here is never assumed - it is read from the account.
     ///
-    /// So ambient life is rationed on three axes at once - one at a time, a floor between
-    /// lines, and a ceiling per hour - while anything the player is directly part of is never
-    /// rationed at all. A conversation you started must always answer.
+    /// The other scarce thing is time. Every line is seconds of waiting, and a street where
+    /// eight people each react to a gunshot would queue the better part of a minute and arrive
+    /// after the moment had passed.
+    ///
+    /// So ambient life is rationed on both at once - one generation at a time, a floor between
+    /// lines, a per-person cooldown, an hourly ceiling, and a reserve of credits it will not
+    /// dip into - while anything the player is directly part of is never rationed at all. A
+    /// conversation you started must always answer.
     /// </summary>
     public static class RequestBudget
     {
@@ -56,6 +61,12 @@ namespace LooseLips.Core
             }
 
             if (!ModConfig.EnableAmbientLife.Value) return Refuse("ambient life is switched off");
+
+            // Whatever the local limits say, the account has the final word. On a free plan this
+            // is the setting that matters: what is left gets saved for conversations the player
+            // actually started.
+            if (Player2.Player2Status.ShouldHoldBackAmbient)
+                return Refuse(Player2.Player2Status.Describe());
 
             Trim();
 

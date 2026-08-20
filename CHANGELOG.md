@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.9.0
+
+Built for somebody else's account, not just the one it was written on.
+
+* **Corrected a wrong measurement.** An early check suggested a chat request cost no credits at
+  all. That was rounding. Measured across several requests, an exchange of about 750 tokens
+  costs roughly a third of a credit, and the balance refills over time. Invisible on a stocked
+  account; the whole story on a free one.
+* **The account has the final word.** The mod now reads the Player2 balance and keeps a
+  reserve - background chatter stops once the balance falls to it, so what is left is saved
+  for conversations you actually started. Adjustable, and worth raising on a free plan.
+* **The three failure modes are told apart.** Not signed in (401), out of credits (402) and
+  going too fast (429) each get their own message and their own response, instead of one
+  generic warning. Rate limiting backs off further each time rather than hammering a server
+  that has already said no. Player2's state is shown in the Connection tab.
+* **A smaller default memory.** Remembered turns per person drops from 12 to 6. History is the
+  single biggest influence on tokens per exchange, and so on what each conversation costs.
+  Raise it for longer memory, lower it on a free account.
+
 ## 0.8.0
 
 The street answers back.

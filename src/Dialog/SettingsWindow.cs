@@ -140,6 +140,7 @@ namespace LooseLips.Dialog
             GUILayout.EndHorizontal();
 
             if (!string.IsNullOrEmpty(_probeResult)) GUILayout.Label(_probeResult);
+            GUILayout.Label(Player2.Player2Status.Describe());
 
             GUILayout.Space(6f);
             TextField(ModConfig.BaseUrl, "Base URL");
@@ -193,6 +194,7 @@ namespace LooseLips.Dialog
                 IntSlider(ModConfig.MaxAmbientPerHour, "At most", 0, 400, " per hour");
                 FloatSlider(ModConfig.MinSecondsBetweenAmbient, "No sooner than every", 5f, 300f, " s");
                 FloatSlider(ModConfig.PerCitizenCooldown, "Same person again after", 15f, 900f, " s");
+                IntSlider(ModConfig.MinJoulesForAmbient, "Keep in reserve", 0, 5000, " credits");
                 GUILayout.Label(Core.RequestBudget.Summary());
                 GUILayout.Label("Last: " + World.AmbientReactions.LastLine);
             }

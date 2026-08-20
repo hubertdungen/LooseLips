@@ -56,6 +56,32 @@ namespace LooseLips.Player2
             return b + path;
         }
 
+        /// <summary>
+        /// How many credits are left, and on what tier. Cheap, and worth knowing: on a well
+        /// stocked account it is invisible, but on a free one it decides whether the mod should
+        /// be generating background chatter at all.
+        /// </summary>
+        public static async Task ReadBalanceAsync()
+        {
+            try
+            {
+                using var resp = await Http.GetAsync(Url("/v1/joules")).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    Player2Status.Saw((int)resp.StatusCode);
+                    return;
+                }
+
+                var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var reading = JsonSerializer.Deserialize<JouleReading>(json, JsonOpts);
+                if (reading != null) Player2Status.Reading(reading.Joules, reading.Tier);
+            }
+            catch
+            {
+                // A missing balance is not an error worth interrupting anybody over.
+            }
+        }
+
         /// <summary>Health check plus keep-alive. Safe to call repeatedly.</summary>
         public static async Task<bool> ProbeAsync()
         {
@@ -63,6 +89,8 @@ namespace LooseLips.Player2
             {
                 using var resp = await Http.GetAsync(Url(ModConfig.HealthPath.Value)).ConfigureAwait(false);
                 var ok = resp.IsSuccessStatusCode;
+                if (ok) await ReadBalanceAsync().ConfigureAwait(false);
+                else Player2Status.Saw((int)resp.StatusCode);
                 if (ok != Available)
                 {
                     var msg = ok
@@ -81,6 +109,7 @@ namespace LooseLips.Player2
                         "Lost contact with the Player2 app. Free-form dialogue will fall back to vanilla lines."));
                 }
                 Available = false;
+                Player2Status.Unreachable();
                 LastError = e.Message;
                 return false;
             }
@@ -115,6 +144,8 @@ namespace LooseLips.Player2
 
                 using var content = new StringContent(body, Encoding.UTF8, "application/json");
                 using var resp = await Http.PostAsync(Url(ModConfig.ChatPath.Value), content, ct).ConfigureAwait(false);
+
+                Player2Status.Saw((int)resp.StatusCode);
 
                 if (!resp.IsSuccessStatusCode)
                 {

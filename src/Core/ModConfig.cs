@@ -46,6 +46,7 @@ namespace LooseLips.Core
         public static ConfigEntry<float> MinSecondsBetweenAmbient;
         public static ConfigEntry<float> PerCitizenCooldown;
         public static ConfigEntry<float> AlarmJumpToReact;
+        public static ConfigEntry<int> MinJoulesForAmbient;
 
         // --- World effects ---
         public static ConfigEntry<bool> EnableWorldEffects;
@@ -112,8 +113,10 @@ namespace LooseLips.Core
                 new ConfigDescription("How fast spoken replies are read out. The API accepts 0.25 to 4.",
                     new AcceptableValueRange<float>(0.25f, 4f)));
 
-            HistoryTurnsPerCitizen = cfg.Bind("Conversation", "Remembered turns per citizen", 12,
-                new ConfigDescription("How much of your conversation with each citizen is replayed to the model.",
+            HistoryTurnsPerCitizen = cfg.Bind("Conversation", "Remembered turns per citizen", 6,
+                new ConfigDescription("How much of your conversation with each citizen is replayed to the model. " +
+                    "This is the biggest single influence on how many tokens - and so how many credits - each " +
+                    "exchange costs. Raise it for longer memory, lower it on a free account.",
                     new AcceptableValueRange<int>(0, 64)));
             MaxReplyCharacters = cfg.Bind("Conversation", "Maximum reply length", 240,
                 new ConfigDescription("Replies longer than this are trimmed so they fit a speech bubble.",
@@ -167,6 +170,11 @@ namespace LooseLips.Core
             PerCitizenCooldown = cfg.Bind("Ambient life", "Same person again after (seconds)", 120f,
                 new ConfigDescription("Stops one startled neighbour narrating your entire evening.",
                     new AcceptableValueRange<float>(15f, 900f)));
+            MinJoulesForAmbient = cfg.Bind("Ambient life", "Keep this many Player2 credits in reserve", 200,
+                new ConfigDescription("Background chatter stops once the balance falls to this, so what is left " +
+                    "is saved for conversations you actually start. Raise it on a free account.",
+                    new AcceptableValueRange<int>(0, 5000)));
+
             AlarmJumpToReact = cfg.Bind("Ambient life", "Fright needed to set somebody off", 0.25f,
                 new ConfigDescription("How far their alarm must jump in one go before they say something.",
                     new AcceptableValueRange<float>(0.05f, 1f)));
