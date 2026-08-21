@@ -219,6 +219,9 @@ namespace LooseLips.Dialog
             if (ModConfig.EnableAmbientLife.Value)
             {
                 Toggle(ModConfig.ReactToWhatYouDo, "React to what you do - drawing a weapon, putting it away");
+                Toggle(ModConfig.GreetYouFirst, "People who know you speak first when you walk up");
+                if (ModConfig.GreetYouFirst.Value)
+                    FloatSlider(ModConfig.GreetingDistance, "Close enough to greet you", 1f, 15f, " m");
                 IntSlider(ModConfig.MaxAmbientPerHour, "At most", 0, 400, " per hour");
                 FloatSlider(ModConfig.MinSecondsBetweenAmbient, "No sooner than every", 5f, 300f, " s");
                 FloatSlider(ModConfig.PerCitizenCooldown, "Same person again after", 15f, 900f, " s");

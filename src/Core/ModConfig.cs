@@ -72,6 +72,8 @@ namespace LooseLips.Core
         public static ConfigEntry<float> MaxOpinionShiftPerLine;
         public static ConfigEntry<float> LoyaltyResistance;
         public static ConfigEntry<bool> ReactToWhatYouDo;
+        public static ConfigEntry<bool> GreetYouFirst;
+        public static ConfigEntry<float> GreetingDistance;
         public static ConfigEntry<int> MaxDemand;
         public static ConfigEntry<float> DemandExpiry;
         public static ConfigEntry<float> PaymentGoodwill;
@@ -174,6 +176,14 @@ namespace LooseLips.Core
             ReactToWhatYouDo = cfg.Bind("Ambient life", "React to what you do, not just what happens", true,
                 "People remark on you drawing a weapon, putting it away, or walking somewhere you should not be. " +
                 "Needs ambient life switched on.");
+            GreetYouFirst = cfg.Bind("Ambient life", "People who know you speak first", true,
+                "Somebody you have talked to before, taken a side about you, or who is still owed money will " +
+                "say something when you walk up, instead of waiting to be spoken to. Strangers stay quiet - " +
+                "a city where everyone greets you is as wrong as one where nobody does.");
+            GreetingDistance = cfg.Bind("Ambient life", "Close enough to greet you (metres)", 4f,
+                new ConfigDescription("How near somebody has to be before they acknowledge you.",
+                    new AcceptableValueRange<float>(1f, 15f)));
+
             MaxAmbientPerHour = cfg.Bind("Ambient life", "Most reactions per hour of play", 40,
                 new ConfigDescription("A hard ceiling, whatever else is going on.",
                     new AcceptableValueRange<int>(0, 400)));

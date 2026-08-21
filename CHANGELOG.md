@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.0
+
+* **People who know you speak first.** Until now nobody in this city ever opened their mouth
+  unprompted: every line was an answer to something you typed, or a reaction to violence. A
+  city where the people who know you never acknowledge you is a city of strangers however good
+  the conversations are.
+  Now an ally greets you as their own, somebody you turned against you is not pleased to see
+  you, anybody still owed money mentions it, and anyone you have simply talked to before speaks
+  as somebody who remembers the last conversation. **Strangers stay quiet on purpose** - a city
+  where everyone greets you is as wrong as one where nobody does, and it would spend the budget
+  that the people who matter should be using.
+
 ## 0.14.0
 
 * **What a conversation achieved now survives the session.** This closes the worst

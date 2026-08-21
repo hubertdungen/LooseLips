@@ -31,10 +31,9 @@ Ordered by how much each one changes the experience, not by how hard it is.
 
 ## Making the city feel alive
 
-- [ ] **Let citizens speak to you first.** Nobody ever opens their mouth unprompted. Someone
-      who owes you a favour should greet you; someone who hates you should say so as you pass.
-      Everything needed - relationship, memory, earshot - already exists. Probably the single
-      biggest gain per hour of work in this list.
+- [x] **Let citizens speak to you first** — done in 0.15.0. Allies, enemies, people who
+      remember talking to you, and anybody still owed money will speak when you walk up.
+      Strangers stay quiet on purpose.
 - [ ] **React to ordinary life, not only to violence.** Triggers currently cover crimes, fear,
       fights, fleeing and you drawing a weapon. Not rain, not the hour, not walking into the
       same bar for the third time.

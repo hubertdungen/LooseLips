@@ -68,6 +68,9 @@ namespace LooseLips.World
 
         private static readonly Dictionary<int, Watched> LastSeen = new Dictionary<int, Watched>();
 
+        /// <summary>Who was within greeting distance last time we looked.</summary>
+        private static readonly HashSet<int> WasNear = new HashSet<int>();
+
         /// <summary>What the player was last seen holding, so a change can be noticed.</summary>
         private static string _playerHeld = "";
         private static bool _playerArmed;
@@ -121,6 +124,7 @@ namespace LooseLips.World
                 _nextPoll = Time.time + 0.5f;
                 try { Poll(); } catch { }
                 try { WatchThePlayer(); } catch { }
+                try { NoticeArrivals(); } catch { }
             }
 
             Drain();
@@ -278,6 +282,83 @@ namespace LooseLips.World
                     What = "The investigator has just taken out a " + Describe(held) + ".",
                     Suggested = VoiceLevel.Whisper
                 });
+            }
+        }
+
+        /// <summary>
+        /// Somebody who knows you walking into range, and saying so first.
+        ///
+        /// Until now nobody in this city ever opened their mouth unprompted: every line was a
+        /// reply to something the player typed or a reaction to violence. A city where the
+        /// people who know you never acknowledge you is a city of strangers no matter how good
+        /// the conversations are.
+        ///
+        /// Only people with a reason to speak get to: somebody you have actually talked to
+        /// before, or somebody who has taken a side about you. A stranger saying hello would be
+        /// noise, and would burn the budget that the people who matter should be spending.
+        /// </summary>
+        private static void NoticeArrivals()
+        {
+            if (!ModConfig.GreetYouFirst.Value) return;
+
+            var player = Player.Instance;
+            if (player == null) return;
+
+            var nowNear = new HashSet<int>();
+
+            foreach (var c in Earshot.CitizensWhoCanHear(player, false))
+            {
+                if (c == null || c.ai == null) continue;
+
+                try
+                {
+                    if (c.isDead || c.isAsleep || c.isStunned) continue;
+                    if (c.ai.inCombat || c.ai.inFleeState) continue;
+                    if (Vector3.Distance(c.transform.position, player.transform.position) >
+                        ModConfig.GreetingDistance.Value) continue;
+                }
+                catch { continue; }
+
+                nowNear.Add(c.humanID);
+                if (WasNear.Contains(c.humanID)) continue;   // already here, not an arrival
+
+                var reason = ReasonToGreet(c);
+                if (reason != null) Enqueue(new Trigger { Who = c, What = reason, Suggested = VoiceLevel.Normal });
+            }
+
+            WasNear.Clear();
+            foreach (var id in nowNear) WasNear.Add(id);
+        }
+
+        /// <summary>Why this person would speak up, or null if they would not.</summary>
+        private static string ReasonToGreet(Citizen c)
+        {
+            try
+            {
+                var stance = Allegiance.Of(c);
+                var turns = Core.ConversationMemory.TurnsWith(c.humanID);
+
+                if (stance == Allegiance.Stance.Ally)
+                    return "The investigator whose side you took has just walked up. Greet them as your own.";
+
+                if (stance == Allegiance.Stance.Hostile)
+                    return "The investigator you decided you were against has just walked up. You are not pleased.";
+
+                if (Negotiation.PendingFor(c) != null)
+                    return "The investigator who still owes you money has just walked up.";
+
+                if (FollowDirector.IsFollowing(c))
+                    return null;   // already with you; greeting them would be absurd
+
+                if (turns > 0)
+                    return "Someone you have spoken with before has just walked up. Say something to them, " +
+                           "as somebody who remembers the last conversation.";
+
+                return null;   // a stranger has no reason to open their mouth
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -448,6 +529,7 @@ namespace LooseLips.World
             _playerHeld = "";
             _playerArmed = false;
             _watchingPlayerStarted = false;
+            WasNear.Clear();
         }
     }
 }
