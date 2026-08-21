@@ -30,6 +30,7 @@ namespace LooseLips.Context
             {
                 sb.AppendLine("Personality traits: " + string.Join(", ", s.Traits));
                 sb.AppendLine("These traits are the strongest influence on how you speak and what you are willing to do.");
+                if (!string.IsNullOrEmpty(s.DispositionNote)) sb.AppendLine(s.DispositionNote);
             }
             sb.AppendLine();
 

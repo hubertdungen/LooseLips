@@ -127,7 +127,7 @@ namespace LooseLips.Context
 
             Try(() => GroundTruthReader.Fill(citizen, s));
 
-            Try(() => s.PermittedEffects.AddRange(WorldEffectExecutor.PermittedEffectNames()));
+            Try(() => s.HasCash = WalletReader.CashOn(citizen) > 0);
             Try(() => s.CanTestifyAbout.AddRange(Testimony.PossibleSubjects(citizen)));
             Try(() => s.Carrying.AddRange(WalletReader.Describe(citizen)));
             Try(() => s.PriorConversations = ConversationMemory.TurnsWith(citizen.humanID));
@@ -135,6 +135,11 @@ namespace LooseLips.Context
             Try(() => s.AllegianceNote = Allegiance.Describe(citizen));
             Try(() => s.PendingDemand = Negotiation.PendingFor(citizen));
             Try(() => s.Opinions.AddRange(Opinion.KnownPeople(citizen)));
+
+            // Last, and deliberately so: which effects are worth offering depends on everything
+            // gathered above, so the list cannot be built until the snapshot is complete.
+            Try(() => s.DispositionNote = Disposition.Describe(s));
+            Try(() => s.PermittedEffects.AddRange(WorldEffectExecutor.PermittedEffectNames(s)));
 
             return s;
         }

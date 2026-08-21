@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.13.0
+
+**An effect now has to have a reason to be offered at all.**
+
+A bartender asked for directions demanded payment three times out of three. The model was not
+at fault: "you may name a price" was sitting in front of it on a turn where no reasonable
+person would use it, and a model handed a suggestion tends to take it. Rewording the prompt
+only moved the problem - every example that fixed one situation unbalanced another.
+
+The mod already knows things the model has to guess. So each effect can now declare when it is
+relevant, and the list a citizen sees is built from who they actually are:
+
+* **Haggling** is offered to somebody greedy, or somebody who does not like you enough to help
+  for free - and never to somebody kind and helpful. Measured: the same question, asked of two
+  people. Helpful, silent 3/3. Greedy, charges 3/3. That is the difference between a citizen
+  being mercenary and the mod being broken.
+* **Fighting back** is offered to the armed, the aggressive and the police - not to the timid.
+* **Handing over cash** only appears when there is cash in the pocket; **giving an item** only
+  when something is in hand; **testimony** only when they actually saw somebody; **crowd
+  effects** only when there is a crowd.
+* Effect descriptions that overlapped were separated - an officer told about a mugging was
+  reaching for "tell what I saw" because it read like reporting.
+
+Also measured and kept as it is: asked politely by a friend, a witness gives up what they saw
+3/3. Told "I need to know. Now." the same witness refuses 3/3. Rudeness costing you the lead is
+the behaviour we want, so that case is a control in the harness rather than a failure.
+
+* Ambient life notices two more things: somebody realising they are bleeding, and you walking
+  into somewhere you have no business being.
+
 ## 0.12.3
 
 * **The mod was giving its revenue attribution away.** Player2 pays a share of its revenue to

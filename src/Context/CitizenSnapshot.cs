@@ -88,5 +88,11 @@ namespace LooseLips.Context
 
         /// <summary>People they know and how they feel about each, so opinions can be argued over.</summary>
         public List<string> Opinions = new List<string>();
+
+        /// <summary>Whether there is any cash in their pocket to be argued out of them.</summary>
+        public bool HasCash;
+
+        /// <summary>What kind of person they are, in one line, for the prompt.</summary>
+        public string DispositionNote;
     }
 }

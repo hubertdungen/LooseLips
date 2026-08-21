@@ -64,7 +64,8 @@ namespace LooseLips.World
             Add("attack_the_investigator", "you attack the investigator you are talking to",
                 r => Attack(r.Speaker, null, r.Shouted),
                 gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
-                aliases: new[] { "attack_them", "attack_the_player" });
+                aliases: new[] { "attack_them", "attack_the_player" },
+                relevant: Disposition.WouldFight);
             Add("attack_someone_else", "you attack somebody else here; put their name in target",
                 r => string.IsNullOrWhiteSpace(r.Target)
                     ? "no name given - use attack_the_investigator if you mean them"
@@ -87,11 +88,13 @@ namespace LooseLips.World
             Add("give_item", "you hand over the item you are holding",
                 r => GiveHeldItem(r.Speaker),
                 gate: () => ModConfig.AllowItemHandover.Value,
-                aliases: new[] { "hand_over", "give", "give_object" });
+                aliases: new[] { "hand_over", "give", "give_object" },
+                relevant: s => s == null || s.CitizenIsArmed);
             Add("give_money", "you hand over cash you are carrying; put the amount in target",
                 r => WalletReader.GiveMoney(r.Speaker, r.Target),
                 gate: () => ModConfig.AllowMoneyHandover.Value,
-                aliases: new[] { "give_cash", "pay_them", "hand_over_money" });
+                aliases: new[] { "give_cash", "pay_them", "hand_over_money" },
+                relevant: s => s == null || s.HasCash);
 
             // --- Taking sides ----------------------------------------------------
             Add("side_with_them", "you decide you are on this investigator's side and will back them up",
@@ -104,14 +107,16 @@ namespace LooseLips.World
                 aliases: new[] { "oppose_them", "become_hostile" });
 
             // --- What they think of other people ---------------------------------
-            Add("warn_them_against", "you turn them against somebody else; put that person's name in target",
+            Add("warn_them_against", "your own opinion of somebody drops because of what you just heard about them; name them in target",
                 r => Opinion.Shift(r.Speaker, r.Target, -ModConfig.MaxOpinionShiftPerLine.Value, r.Shouted),
                 gate: () => ModConfig.AllowThirdPartyOpinion.Value, conflicts: "opinion",
-                aliases: new[] { "badmouth", "poison_against", "turn_against_someone" });
+                aliases: new[] { "badmouth", "poison_against", "turn_against_someone" },
+                relevant: Disposition.WouldTalkAboutOthers);
             Add("speak_well_of", "you raise their opinion of somebody else; put that person's name in target",
                 r => Opinion.Shift(r.Speaker, r.Target, ModConfig.MaxOpinionShiftPerLine.Value, r.Shouted),
                 gate: () => ModConfig.AllowThirdPartyOpinion.Value, conflicts: "opinion",
-                aliases: new[] { "vouch_for_someone", "praise" });
+                aliases: new[] { "vouch_for_someone", "praise" },
+                relevant: Disposition.WouldTalkAboutOthers);
             Add("stand_up_for", "you take somebody else's side against whoever is threatening them; name them in target",
                 r => Opinion.StandUpFor(r.Speaker, r.Target, r.Shouted),
                 gate: () => ModConfig.AllowThirdPartyOpinion.Value,
@@ -121,7 +126,8 @@ namespace LooseLips.World
             Add("name_a_price", "you will talk, for money; put the amount in target and what for in detail",
                 r => Negotiation.Demand_(r.Speaker, r.Target, r.Detail),
                 gate: () => ModConfig.AllowNegotiation.Value, conflicts: "deal",
-                aliases: new[] { "demand_payment", "ask_for_money", "set_price" });
+                aliases: new[] { "demand_payment", "ask_for_money", "set_price" },
+                relevant: Disposition.WouldHaggle);
             Add("take_the_money", "they have agreed to a price you already named, so you take it",
                 r => Negotiation.TakePayment(r.Speaker),
                 gate: () => ModConfig.AllowNegotiation.Value, conflicts: "deal",
@@ -145,7 +151,7 @@ namespace LooseLips.World
                 r => SetOfficerPursuit(r.Speaker, Player.Instance, r.Shouted),
                 gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police",
                 aliases: new[] { "report_them", "report_the_player" });
-            Add("send_police_after", "you set the police on somebody else here; put their name in target",
+            Add("send_police_after", "you have somebody standing here right now chased down by the police; name them in target",
                 r => AccuseOther(r.Speaker, r.Target, r.Shouted),
                 gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police",
                 aliases: new[] { "accuse" });
@@ -162,10 +168,11 @@ namespace LooseLips.World
                 gate: () => ModConfig.AllowPoliceRedirection.Value, conflicts: "police");
 
             // --- What they saw -----------------------------------------------------
-            Add("tell_what_i_saw", "you give up where and when you saw someone; put their name in target",
+            Add("tell_what_i_saw", "you tell them about somebody you saw earlier, which puts a real lead in their case file; name that person in target",
                 r => Testimony.RevealSighting(r.Speaker, r.Target),
                 gate: () => ModConfig.AllowTestimony.Value,
-                aliases: new[] { "testify", "reveal_sighting", "tell_what_i_know" });
+                aliases: new[] { "testify", "reveal_sighting", "tell_what_i_know" },
+                relevant: s => s == null || s.CanTestifyAbout.Count > 0);
 
             // --- Going somewhere ----------------------------------------------------
             Add("go", "you drop what you were doing and leave; put go_home, go_to_work, go_to_bed or leave in target",
@@ -180,17 +187,21 @@ namespace LooseLips.World
             // --- Everyone who heard --------------------------------------------------
             Add("crowd_panic", "everyone who heard you scatters",
                 r => CrowdEffects.Panic(r.Speaker, r.Shouted),
-                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd",
+                relevant: s => s == null || s.Bystanders.Count > 0);
             Add("crowd_settle", "everyone who heard you calms down",
                 r => CrowdEffects.Settle(r.Speaker, r.Shouted),
-                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd",
+                relevant: s => s == null || s.Bystanders.Count > 0);
             Add("crowd_gather", "everyone who heard you comes over to look",
                 r => CrowdEffects.Gather(r.Speaker, r.Shouted),
-                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd");
+                gate: () => ModConfig.AllowCrowdEffects.Value, conflicts: "crowd",
+                relevant: s => s == null || s.Bystanders.Count > 0);
         }
 
         private static void Add(string name, string description, Func<EffectCatalogue.Request, string> run,
-                                Func<bool> gate = null, string conflicts = null, string[] aliases = null)
+                                Func<bool> gate = null, string conflicts = null, string[] aliases = null,
+                                Func<Context.CitizenSnapshot, bool> relevant = null)
         {
             EffectCatalogue.Register(new EffectCatalogue.Definition
             {
@@ -199,17 +210,22 @@ namespace LooseLips.World
                 Run = run,
                 Enabled = gate ?? (() => true),
                 Conflicts = conflicts,
-                Aliases = aliases ?? new string[0]
+                Aliases = aliases ?? new string[0],
+                Relevant = relevant
             });
         }
 
-        /// <summary>Effect vocabulary offered to the model, filtered by config.</summary>
-        public static IEnumerable<string> PermittedEffectNames()
+        /// <summary>
+        /// Effect vocabulary offered to the model: switched on, and with a reason to be on the
+        /// table for this particular person. Pass the snapshot - the list without it is every
+        /// effect the settings allow, which is only what the settings window wants.
+        /// </summary>
+        public static IEnumerable<string> PermittedEffectNames(Context.CitizenSnapshot snapshot = null)
         {
             if (!ModConfig.EnableWorldEffects.Value) yield break;
 
             RegisterAll();
-            foreach (var definition in EffectCatalogue.Offered())
+            foreach (var definition in EffectCatalogue.Offered(snapshot))
             {
                 yield return definition.Name + " - " + definition.Description;
             }

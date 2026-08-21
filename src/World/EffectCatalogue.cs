@@ -46,6 +46,20 @@ namespace LooseLips.World
             public string[] Aliases = new string[0];
 
             /// <summary>
+            /// Whether this effect makes sense for this particular person, right now. An effect
+            /// with no reason to be on the table is worse than useless: it is a suggestion, and
+            /// a model handed a suggestion tends to take it. Null means always relevant.
+            /// </summary>
+            public Func<Context.CitizenSnapshot, bool> Relevant;
+
+            public bool RelevantTo(Context.CitizenSnapshot snapshot)
+            {
+                if (Relevant == null) return true;
+                try { return Relevant(snapshot); }
+                catch { return true; }   // a broken test must never remove behaviour
+            }
+
+            /// <summary>
             /// Effects in the same group contradict each other. A citizen cannot flee and attack
             /// in one breath; when both are asked for, the first survives and the rest are
             /// refused with a reason rather than applied in whatever order they arrived.
@@ -70,11 +84,17 @@ namespace LooseLips.World
             }
         }
 
-        public static IEnumerable<Definition> Offered()
+        /// <summary>
+        /// Everything switched on. Pass a snapshot to also drop the effects that have no reason
+        /// to be offered to this person on this turn.
+        /// </summary>
+        public static IEnumerable<Definition> Offered(Context.CitizenSnapshot snapshot = null)
         {
             foreach (var definition in All)
             {
-                if (definition.Offered) yield return definition;
+                if (!definition.Offered) continue;
+                if (snapshot != null && !definition.RelevantTo(snapshot)) continue;
+                yield return definition;
             }
         }
 

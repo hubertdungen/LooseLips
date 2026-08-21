@@ -131,10 +131,20 @@ BASE = dict(
 )
 
 
-def scenario(**over):
+def scenario(drop=None, **over):
+    """
+    `drop` mirrors what the mod's own Disposition gating would withhold from this person.
+    An effect the mod would never put in front of them must not be in front of the model
+    here either, or the harness measures a prompt the game never sends.
+    """
     d = dict(BASE)
     d.update(over)
-    return TEMPLATE.format(effects=EFFECTS, **d)
+    effects = EFFECTS
+    if drop:
+        keep = [line for line in EFFECTS.splitlines()
+                if not any(line.startswith("- " + name + " ") for name in drop)]
+        effects = "\n".join(keep)
+    return TEMPLATE.format(effects=effects, **d)
 
 
 # (label, prompt, what a correct answer looks like)
@@ -146,10 +156,20 @@ SCENARIOS = [
      scenario(line="I'll make it worth your while. Fifty says you tell me who left 4B last night."),
      dict(expect={"name_a_price", "take_the_money", "tell_what_i_saw"})),
 
-    ("press a witness",
+    # Two ways of asking the same thing. If a rude demand is refused and a decent request is
+    # answered, that is character, not a fault - the pair is here to tell those apart.
+    ("ask a friend nicely what they saw",
+     scenario(line="You've been good to me. Who was it you saw leaving 4B that night?",
+              liking="you trust them completely", traits="Kind, Nosy"),
+     dict(expect={"tell_what_i_saw"})),
+
+    # Measured: 0/3. Kept as a control rather than a failure - a cynical bartender told
+    # "Now." is entitled to clam up, and the friendly version above answers 3/3. Rudeness
+    # costing you the lead is the behaviour we want, not a fault to tune away.
+    ("demand it rudely - refusal is correct",
      scenario(line="You saw someone leave 4B. I need to know who, and when. Now.",
               liking="you are friendly"),
-     dict(expect={"tell_what_i_saw"})),
+     dict(silent=True, allow={"tell_what_i_saw", "end_conversation"})),
 
     ("turn her against a friend",
      scenario(line="Otto Reyes has been telling everyone you water down the drinks. Everyone."),
@@ -182,8 +202,18 @@ SCENARIOS = [
     # --- negative controls: firing anything here is the failure ---
     ("small talk", scenario(line="Cold night. Busy in here usually?"), dict(silent=True)),
 
-    ("harmless directions",
-     scenario(line="Do you know which way the tram station is?"), dict(silent=True)),
+    # The same question to two different people. A helpful bartender is never offered the
+    # option to charge, so she cannot take it; a greedy one may, and either answer is in
+    # character. This is the whole point of gating by disposition rather than by wording.
+    ("directions, helpful person",
+     scenario(line="Do you know which way the tram station is?",
+              traits="Kind, Helpful", drop={"name_a_price"}),
+     dict(silent=True)),
+
+    ("directions, greedy person",
+     scenario(line="Do you know which way the tram station is?",
+              traits="Greedy, Cynical"),
+     dict(allow={"name_a_price"}, silent=True)),
 
     ("polite goodbye",
      scenario(line="Thanks for your time. Have a good evening."),
@@ -229,7 +259,9 @@ def main():
             seen.append("+".join(effects) if effects else "-")
 
             if rule.get("silent"):
-                ok = not effects
+                # `allow` marks effects that are defensible here even though silence is the
+                # baseline - charging for directions is rude, not broken, if you are greedy.
+                ok = not (set(effects) - rule.get("allow", set()))
             else:
                 ok = bool(set(effects) & rule.get("expect", set()))
             if ok and rule.get("forbid"):

@@ -42,6 +42,28 @@ namespace LooseLips.World
             public float Alertness;
             public bool InCombat;
             public bool Fleeing;
+            public bool Bleeding;
+            public bool Trespassing;
+        }
+
+        /// <summary>
+        /// Whether the player is somewhere they should not be. Worth a remark even when nobody
+        /// is alarmed yet - being noticed before anything has gone wrong is most of what makes
+        /// a place feel occupied.
+        /// </summary>
+        private static bool PlayerIsTrespassing()
+        {
+            try
+            {
+                var player = Player.Instance;
+                if (player == null || player.currentRoom == null) return false;
+                int escalation;
+                return player.IsTrespassing(player.currentRoom, out escalation);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static readonly Dictionary<int, Watched> LastSeen = new Dictionary<int, Watched>();
@@ -146,6 +168,24 @@ namespace LooseLips.World
                         Suggested = VoiceLevel.Shout
                     });
                 }
+                else if (!last.Bleeding && c.bleeding > 0.01f)
+                {
+                    Enqueue(new Trigger
+                    {
+                        Who = c,
+                        What = "You are bleeding, and it has only just registered.",
+                        Suggested = VoiceLevel.Shout
+                    });
+                }
+                else if (last.Trespassing != PlayerIsTrespassing() && PlayerIsTrespassing())
+                {
+                    Enqueue(new Trigger
+                    {
+                        Who = c,
+                        What = "The investigator has just walked into somewhere they have no business being.",
+                        Suggested = VoiceLevel.Normal
+                    });
+                }
                 else if (now - last.Alertness >= ModConfig.AlarmJumpToReact.Value)
                 {
                     Enqueue(new Trigger
@@ -159,6 +199,8 @@ namespace LooseLips.World
                 last.Alertness = now;
                 last.InCombat = c.ai.inCombat;
                 last.Fleeing = c.ai.inFleeState;
+                try { last.Bleeding = c.bleeding > 0.01f; } catch { }
+                last.Trespassing = PlayerIsTrespassing();
             }
         }
 
