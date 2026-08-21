@@ -25,10 +25,12 @@ namespace LooseLips.Dialog
         private static Vector2 _scroll;
         private static int _tab;
 
-        private static readonly string[] Tabs = { "Connection", "Talking", "Consequences", "Debug" };
+        private static readonly string[] Tabs = { "Connection", "Talking", "Consequences", "Appearance", "Debug" };
 
         private static string _probeResult = "";
         private static string _goalDump = "";
+
+        private static readonly string[] Themes = { "Rain", "Neon", "Amber", "Paper", "Game default" };
         private static bool _probing;
 
         public static bool IsOpen => _open;
@@ -71,15 +73,11 @@ namespace LooseLips.Dialog
             var previousMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1f));
 
-            // Tint the chrome rather than everything: fading GUI.color would take the text with
-            // it, and a settings window you cannot read is not a transparent one.
-            var previousBackground = GUI.backgroundColor;
-            var opacity = Mathf.Clamp(ModConfig.WindowOpacity.Value, 0.2f, 1f);
-            GUI.backgroundColor = new Color(previousBackground.r, previousBackground.g, previousBackground.b, opacity);
+            var skin = Skin.Begin();
 
             _rect = GUI.Window(WindowId, _rect, (GUI.WindowFunction)DrawContents, "Loose Lips");
 
-            GUI.backgroundColor = previousBackground;
+            skin.End();
             GUI.matrix = previousMatrix;
         }
 
@@ -97,6 +95,7 @@ namespace LooseLips.Dialog
                 case 0: DrawConnection(); break;
                 case 1: DrawTalking(); break;
                 case 2: DrawConsequences(); break;
+                case 3: DrawAppearance(); break;
                 default: DrawDebug(); break;
             }
 
@@ -243,10 +242,7 @@ namespace LooseLips.Dialog
             GUILayout.Label("They only talk where you can hear them. A conversation you cannot overhear has " +
                             "nothing in it for you and still costs a request.");
 
-            GUILayout.Space(10f);
-            Header("Interface");
-            FloatSlider(ModConfig.UiScale, "Interface scale", 0.6f, 2.5f, "x");
-            FloatSlider(ModConfig.WindowOpacity, "Window opacity", 0.2f, 1f, "");
+
         }
 
         private static void DrawConsequences()
@@ -297,6 +293,36 @@ namespace LooseLips.Dialog
                             "rather than a single lucky sentence.");
         }
 
+        private static void DrawAppearance()
+        {
+            Header("Theme");
+            GUILayout.BeginHorizontal();
+            foreach (var name in Themes)
+            {
+                var chosen = ModConfig.Theme.Value == name;
+                if (GUILayout.Button(chosen ? "[ " + name + " ]" : name)) ModConfig.Theme.Value = name;
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Label("Rain is the game's own wet blue. Neon matches the mod's icon. Paper is a light " +
+                            "theme for bright rooms. Game default leaves the colours alone.");
+
+            GUILayout.Space(8f);
+            FloatSlider(ModConfig.AccentHue, "Shift the colour", -0.5f, 0.5f, "");
+            Toggle(ModConfig.TintTheChatBox, "Tint the typing box too");
+
+            GUILayout.Space(10f);
+            Header("Size and transparency");
+            FloatSlider(ModConfig.UiScale, "Interface scale", 0.6f, 2.5f, "x");
+            GUILayout.Label("Raise this on a high resolution screen.");
+            FloatSlider(ModConfig.WindowOpacity, "Window opacity", 0.2f, 1f, "");
+            GUILayout.Label("Only the window itself fades - the text stays readable at any setting.");
+
+            GUILayout.Space(10f);
+            Header("Hotkey");
+            GUILayout.Label("This window opens with " + ModConfig.SettingsHotkey.Value +
+                            ". Change it in the config file.");
+        }
+
         private static void DrawDebug()
         {
             Toggle(ModConfig.VerboseLogging, "Verbose logging");
@@ -306,11 +332,6 @@ namespace LooseLips.Dialog
             GUILayout.Space(8f);
             Toggle(ModConfig.LogPrompts, "Log every prompt");
             GUILayout.Label("Large. Useful when a citizen answers oddly and you want to see what they were told.");
-
-            GUILayout.Space(10f);
-            Header("Hotkey");
-            GUILayout.Label("Opens this window: " + ModConfig.SettingsHotkey.Value);
-            GUILayout.Label("Change it in the config file if you want a different key.");
 
             GUILayout.Space(10f);
             Header("Does any of this actually work?");

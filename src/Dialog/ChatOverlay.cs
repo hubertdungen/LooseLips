@@ -156,6 +156,8 @@ namespace LooseLips.Dialog
             var y = Screen.height / scale - WindowHeight - 90f;
             var rect = new Rect(x, y, WindowWidth, WindowHeight);
 
+            var skin = ModConfig.TintTheChatBox.Value ? Skin.Begin() : default;
+
             GUI.color = new Color(0f, 0f, 0f, 0.82f);
             GUI.Box(rect, GUIContent.none);
             GUI.color = Color.white;
@@ -190,6 +192,7 @@ namespace LooseLips.Dialog
             GUILayout.EndHorizontal();
 
             GUILayout.EndArea();
+            skin.End();
 
             GUI.matrix = previousMatrix;
         }

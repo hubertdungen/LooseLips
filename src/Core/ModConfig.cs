@@ -78,6 +78,9 @@ namespace LooseLips.Core
         public static ConfigEntry<KeyCode> SettingsHotkey;
         public static ConfigEntry<float> UiScale;
         public static ConfigEntry<float> WindowOpacity;
+        public static ConfigEntry<string> Theme;
+        public static ConfigEntry<float> AccentHue;
+        public static ConfigEntry<bool> TintTheChatBox;
 
         // --- Debug ---
         public static ConfigEntry<bool> VerboseLogging;
@@ -257,6 +260,15 @@ namespace LooseLips.Core
             WindowOpacity = cfg.Bind("Interface", "Window opacity", 1f,
                 new ConfigDescription("How solid this mod's windows are. Lower it to keep an eye on the street " +
                     "behind the settings window.", new AcceptableValueRange<float>(0.2f, 1f)));
+
+            Theme = cfg.Bind("Interface", "Theme", "Rain",
+                new ConfigDescription("Colour of this mod's own windows.",
+                    new AcceptableValueList<string>("Rain", "Neon", "Amber", "Paper", "Game default")));
+            AccentHue = cfg.Bind("Interface", "Accent shift", 0f,
+                new ConfigDescription("Rotates the chosen theme's colour, for when it clashes with your taste " +
+                    "rather than your monitor.", new AcceptableValueRange<float>(-0.5f, 0.5f)));
+            TintTheChatBox = cfg.Bind("Interface", "Tint the typing box too", true,
+                "Apply the theme to the box you type into, not just the settings window.");
 
             VerboseLogging = cfg.Bind("Debug", "Verbose logging", false, "Log the full request and response cycle.");
             LogPrompts = cfg.Bind("Debug", "Log prompts", false, "Write every prompt sent to the model into the BepInEx log.");
