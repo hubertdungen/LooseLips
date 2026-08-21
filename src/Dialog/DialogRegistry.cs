@@ -23,6 +23,9 @@ namespace LooseLips.Dialog
         private static MethodInfo _borrowedMethod;
         private static bool _presetsBuilt;
 
+        /// <summary>Where the next option goes, so registration order is preserved at the top.</summary>
+        private static int _insertedAt;
+
         /// <summary>
         /// Build the presets. Safe to call more than once; only the first call does work.
         /// Needs Toolbox and the string tables to be loaded, so it runs from a game hook
@@ -55,8 +58,11 @@ namespace LooseLips.Dialog
                     if (toolbox.allDialog != null && !toolbox.allDialog.Contains(custom.Preset))
                         toolbox.allDialog.Add(custom.Preset);
 
+                    // At the top rather than appended. These are the options the mod exists for,
+                    // and having to scroll past the vanilla list to reach them every single time
+                    // turns a conversation into a menu hunt.
                     if (toolbox.defaultDialogOptions != null && !toolbox.defaultDialogOptions.Contains(custom.Preset))
-                        toolbox.defaultDialogOptions.Add(custom.Preset);
+                        toolbox.defaultDialogOptions.Insert(_insertedAt++, custom.Preset);
                 }
             }
             catch (Exception e)

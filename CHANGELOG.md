@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.10.0
+
+Five bugs from the first real playtest.
+
+* **The settings window only ever showed one tab.** GUILayout.Toolbar wants an
+  Il2CppStringArray; a managed string[] converts implicitly, so the call compiled, ran without
+  complaint and drew nothing at all - leaving every tab but Connection unreachable while the
+  source looked perfectly correct. The tab row is now built from plain buttons.
+* **The character kept turning while the window was open.** Movement and mouse-look are
+  separate switches in this game, and only the first was being disabled.
+* **Typing a line containing "f" opened the investigation board.** The game never stopped
+  listening for its own shortcuts; `InputController.enableInput` is now off while a mod window
+  has the mouse.
+* **A follower could be replaced by a stranger.** The game reuses citizen objects, so holding
+  one across time eventually drives a different person. Followers are now stored as ids and
+  re-resolved every tick; if the id is gone, the follower is simply dropped.
+* **Being shot for reporting a mugging, part two.** `attack` with an empty target fell back to
+  the investigator - the same shape of mistake as the old `call_police`. It is now
+  `attack_the_investigator` or `attack_someone_else` with a name, and the bare form is refused
+  unless a target settles who is meant.
+* The two speech options now sit at the top of the dialogue list instead of below the vanilla
+  ones.
+* Added CLAUDE.md, so a session opened on any machine knows the project.
+
 ## 0.9.0
 
 Built for somebody else's account, not just the one it was written on.

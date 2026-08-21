@@ -57,10 +57,27 @@ namespace LooseLips.World
                 r => Flee(r.Speaker, r.Target),
                 gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
                 aliases: new[] { "run", "run_away", "escape" });
-            Add("attack", "you attack somebody; leave target empty for the investigator, or put a name",
-                r => Attack(r.Speaker, r.Target, r.Shouted),
+            // Two names, for the same reason the police effects have two: an effect that turns
+            // on the player when the target field happens to be empty is one careless reply away
+            // from being shot for reporting a mugging. Attacking the investigator has to be
+            // asked for by name.
+            Add("attack_the_investigator", "you attack the investigator you are talking to",
+                r => Attack(r.Speaker, null, r.Shouted),
+                gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
+                aliases: new[] { "attack_them", "attack_the_player" });
+            Add("attack_someone_else", "you attack somebody else here; put their name in target",
+                r => string.IsNullOrWhiteSpace(r.Target)
+                    ? "no name given - use attack_the_investigator if you mean them"
+                    : Attack(r.Speaker, r.Target, r.Shouted),
                 gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",
                 aliases: new[] { "fight", "assault", "strike" });
+
+            // Accepted but not offered: only honoured when a target settles who is meant.
+            Add("attack", null,
+                r => string.IsNullOrWhiteSpace(r.Target)
+                    ? "ambiguous - use attack_the_investigator or attack_someone_else"
+                    : Attack(r.Speaker, r.Target, r.Shouted),
+                gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance");
             Add("surrender", "you stop fighting and give yourself up",
                 r => Surrender(r.Speaker),
                 gate: () => ModConfig.AllowCombatEffects.Value, conflicts: "stance",

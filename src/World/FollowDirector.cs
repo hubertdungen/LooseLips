@@ -24,9 +24,37 @@ namespace LooseLips.World
     {
         private sealed class Follower
         {
-            public Citizen Citizen;
+            /// <summary>
+            /// Stored as an id, never as the object.
+            ///
+            /// The game reuses citizen objects: somebody who walks out of the simulated area
+            /// can have their slot handed to a different person entirely. Holding the object
+            /// across time therefore means eventually driving the wrong human - which showed up
+            /// in testing as a follower who agreed to come along, did not, and appeared to be
+            /// replaced by a stranger. Re-resolving by id each tick cannot do that: if the id
+            /// is gone, the follower is simply dropped.
+            /// </summary>
+            public int Id;
             public float Until;
             public float NextNudge;
+        }
+
+        /// <summary>Look a citizen up again by id. Null when they are no longer around.</summary>
+        private static Citizen Resolve(int id)
+        {
+            try
+            {
+                var city = CityData.Instance;
+                if (city == null) return null;
+
+                Human human;
+                if (!city.GetHuman(id, out human, false) || human == null) return null;
+                return human.TryCast<Citizen>();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static readonly Dictionary<int, Follower> Following = new Dictionary<int, Follower>();
@@ -42,7 +70,12 @@ namespace LooseLips.World
             var names = new List<string>();
             foreach (var f in Following.Values)
             {
-                try { names.Add(f.Citizen.GetCitizenName()); } catch { }
+                try
+                {
+                    var citizen = Resolve(f.Id);
+                    if (citizen != null) names.Add(citizen.GetCitizenName());
+                }
+                catch { }
             }
             return names;
         }
@@ -58,7 +91,7 @@ namespace LooseLips.World
 
             Following[citizen.humanID] = new Follower
             {
-                Citizen = citizen,
+                Id = citizen.humanID,
                 Until = Time.time + ModConfig.FollowDuration.Value,
                 NextNudge = 0f
             };
@@ -95,7 +128,7 @@ namespace LooseLips.World
             foreach (var pair in Following)
             {
                 var follower = pair.Value;
-                var citizen = follower.Citizen;
+                var citizen = Resolve(follower.Id);
 
                 var done = false;
                 try
@@ -141,12 +174,12 @@ namespace LooseLips.World
             if (expired == null) return;
             foreach (var id in expired)
             {
-                Follower gone;
-                if (Following.TryGetValue(id, out gone))
+                try
                 {
-                    try { SessionLog.Note(gone.Citizen.GetCitizenName() + " stopped following you."); }
-                    catch { }
+                    var gone = Resolve(id);
+                    if (gone != null) SessionLog.Note(gone.GetCitizenName() + " stopped following you.");
                 }
+                catch { }
                 Following.Remove(id);
             }
         }

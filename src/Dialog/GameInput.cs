@@ -54,6 +54,11 @@ namespace LooseLips.Dialog
                     input.SetMouseInputMode(ours, true);
                     input.SetCursorVisible(ours);
                     input.SetCursorLock(!ours);
+
+                    // The master switch for the game's own keys. Without it, typing a line
+                    // containing "f" opens the investigation board mid-sentence, because the
+                    // game never stopped listening for its shortcuts.
+                    input.enableInput = !ours;
                 }
             }
             catch (Exception e)
@@ -65,8 +70,15 @@ namespace LooseLips.Dialog
             try
             {
                 // Stop the character walking off while you are typing or reading settings.
+                // Movement and mouse-look are separate switches: disabling only the first left
+                // the camera still turning with the mouse, which is what made the window feel
+                // like it had not taken the mouse at all.
                 var player = Player.Instance;
-                if (player != null) player.EnablePlayerMovement(!ours);
+                if (player != null)
+                {
+                    player.EnablePlayerMovement(!ours);
+                    player.EnablePlayerMouseLook(!ours, false);
+                }
             }
             catch (Exception e)
             {

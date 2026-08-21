@@ -87,7 +87,7 @@ namespace LooseLips.Dialog
         {
             GUILayout.Space(4f);
 
-            _tab = GUILayout.Toolbar(_tab, Tabs);
+            DrawTabs();
             GUILayout.Space(6f);
 
             _scroll = GUILayout.BeginScrollView(_scroll);
@@ -110,6 +110,34 @@ namespace LooseLips.Dialog
             GUILayout.EndHorizontal();
 
             GUI.DragWindow(new Rect(0f, 0f, 100000f, 22f));
+        }
+
+        /// <summary>
+        /// The tab row, drawn as ordinary buttons.
+        ///
+        /// GUILayout.Toolbar wants an Il2CppStringArray. A managed string[] converts to one
+        /// implicitly, so the call compiled and ran without complaint - and drew nothing at
+        /// all, which left every tab but the first unreachable in game while looking perfectly
+        /// correct in the source. Single-string calls marshal cleanly, so the row is built
+        /// from buttons.
+        /// </summary>
+        private static void DrawTabs()
+        {
+            GUILayout.BeginHorizontal();
+            for (var i = 0; i < Tabs.Length; i++)
+            {
+                var selected = i == _tab;
+
+                // The pressed look has to be faked: a button does not know it is a tab.
+                var previous = GUI.backgroundColor;
+                if (selected) GUI.backgroundColor = new Color(previous.r * 1.8f, previous.g * 1.8f,
+                                                             previous.b * 1.8f, previous.a);
+
+                if (GUILayout.Button(selected ? "[ " + Tabs[i] + " ]" : Tabs[i])) _tab = i;
+
+                GUI.backgroundColor = previous;
+            }
+            GUILayout.EndHorizontal();
         }
 
         // --- Tabs ---------------------------------------------------------------
