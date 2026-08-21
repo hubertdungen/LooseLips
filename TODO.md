@@ -49,6 +49,20 @@ what they achieved does not.
 
 ## Prompt and model behaviour
 
+- [ ] **Stop tuning the prompt and hint from code instead.** Measured with `tests/scenarios.py`:
+      every example added to the prompt fixes one situation and unbalances another. Two
+      examples about being cornered left `tell_what_i_saw` firing 0 times out of 3; adding a
+      testimony example took it to 3/3 and made a citizen demand payment for *directions* 3/3;
+      adding a do-nothing example fixed the directions and pushed testimony back to 1/3. This
+      is a see-saw, not a bug to fix with more wording.
+      The structural answer is that **the code already knows the situation** - whether the
+      player is armed, whether this citizen has sightings, whether officers are present,
+      whether money was offered - and should name the two or three plausible effects for
+      *this* turn rather than handing the model 28 generic ones and hoping. Cheaper in tokens
+      too.
+- [ ] `warn_them_against` fires 0/3 even with a worked example, and an enforcer told about a
+      mugging reaches for `tell_what_i_saw` instead of `send_police_after`. Both look like the
+      effect descriptions being too close to each other rather than the model refusing.
 - [ ] **Measure more than the mugging.** `attack_the_investigator` went from 0/3 to 3/3 once
       worked examples were added to the prompt; nothing else has been measured that way. Bribery,
       testimony and turning people against each other deserve the same treatment.

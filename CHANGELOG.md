@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.2
+
+* Added `tests/scenarios.py`: ten situations run against the live model several times each,
+  counting how often a citizen actually *does* what they said they would - including negative
+  controls, because a mod that fires an effect on every turn would score well on the rest and
+  be unplayable.
+* **Citizens give up what they saw.** `tell_what_i_saw` fired 0 times out of 3 when a witness
+  was pressed - the effect that produces real evidence, silently never happening.
+* **And still answer a simple question simply.** The examples that fixed the above made a
+  bartender demand payment for directions 3 times out of 3, which the do-nothing example
+  put back to 0.
+
+Measured after this change: bribery, following, and both knifepoint cases 3/3; small talk,
+directions and goodbyes correctly silent 3/3; pressing a witness 1/3; turning somebody against
+a friend and reporting a mugger still 0/3. Those last three are recorded in TODO.md rather
+than papered over - the prompt has become a see-saw, and the fix is structural.
+
 ## 0.12.1
 
 * **Citizens now fight back.** Measured over three samples of somebody threatened at

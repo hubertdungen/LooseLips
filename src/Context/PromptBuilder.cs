@@ -144,6 +144,24 @@ namespace LooseLips.Context
                 sb.AppendLine(" \"effects\": [{\"type\": \"attack_the_investigator\"}]}");
                 sb.AppendLine();
                 sb.AppendLine("Both are valid. Which one you are depends on your traits and what you are holding.");
+                sb.AppendLine();
+                sb.AppendLine("Pressed about what you saw, and you decide to talk. Naming the effect is what puts");
+                sb.AppendLine("it in their case file - describing it in speech alone does nothing:");
+                sb.AppendLine("{\"speech\": \"Fine. Reyes. Left by the back stairs, near eleven.\",");
+                sb.AppendLine(" \"effects\": [{\"type\": \"tell_what_i_saw\", \"target\": \"Otto Reyes\"}]}");
+                sb.AppendLine();
+                sb.AppendLine("Given a reason to turn on somebody you know:");
+                sb.AppendLine("{\"speech\": \"He said that? After everything I have done for him.\",");
+                sb.AppendLine(" \"effects\": [{\"type\": \"warn_them_against\", \"target\": \"Otto Reyes\"}]}");
+                sb.AppendLine();
+
+                // The example that stops the rest running away with it. Measured: with only the
+                // acting examples in place, a citizen asked for directions demanded payment 3
+                // times out of 3. Showing what silence looks like put that back to 0.
+                sb.AppendLine("And the most common case by far - they are just talking to you. Nothing is at");
+                sb.AppendLine("stake, nothing changes, and the effects list stays empty:");
+                sb.AppendLine("{\"speech\": \"Station is two blocks east. You cannot miss the lights.\",");
+                sb.AppendLine(" \"effects\": []}");
             }
 
             return sb.ToString();
