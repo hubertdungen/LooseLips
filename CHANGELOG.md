@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.3
+
+* **The mod was giving its revenue attribution away.** Player2 pays a share of its revenue to
+  creators, attributed by the `player2-game-key` header - and this mod was sending
+  `shadows-of-doubt-player2`, which names the game it runs inside rather than itself, so the
+  credit landed nowhere. It now identifies as `loose-lips`.
+  Existing installs keep whatever is already in their config file; change it by hand to pick
+  the attribution up.
+* Documented what that header does and does not do: it attributes usage, it does **not**
+  register anything. Appearing in the Player2 app's catalogue is a separate submission in
+  Player2's developer portal, recorded in TODO.md.
+
 ## 0.12.2
 
 * Added `tests/scenarios.py`: ten situations run against the live model several times each,

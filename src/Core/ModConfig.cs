@@ -96,8 +96,11 @@ namespace LooseLips.Core
         {
             BaseUrl = cfg.Bind("Player2", "Base URL", "http://localhost:4315",
                 "Root URL of the local Player2 desktop app.");
-            GameKey = cfg.Bind("Player2", "Game key", "shadows-of-doubt-player2",
-                "Sent as the player2-game-key header, used by Player2 for attribution.");
+            GameKey = cfg.Bind("Player2", "Game key", "loose-lips",
+                "Sent as the player2-game-key header. Player2 uses it to attribute time spent to a game or " +
+                "mod, and pays a share of their revenue back to its author on that basis - so it has to name " +
+                "this mod rather than the game it runs inside, or the credit lands nowhere. Change it only if " +
+                "Player2 issues a different identifier for the mod.");
             ChatPath = cfg.Bind("Player2", "Chat endpoint path", "/v1/chat/completions",
                 "Path appended to the base URL for chat completions. Player2 exposes an OpenAI-compatible endpoint here. " +
                 "If your Player2 build differs, check http://localhost:4315/docs and correct this.");

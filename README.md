@@ -124,6 +124,17 @@ Everything can be changed while playing.
 and — importantly — **what the game refused and why**. If a conversation feels wrong, the
 answer is usually in there.
 
+# A note on Player2 credits
+
+Generation is not free, though it is cheap: an exchange costs roughly a third of a Player2
+credit, and the balance refills over time. On a free account that still adds up, so the mod
+keeps a reserve — background chatter stops before your own conversations do, and the
+Connection tab shows what is left.
+
+The mod identifies itself to Player2 as `loose-lips`. Player2 uses that to attribute time
+spent and pays a share of their revenue back to mod authors, so please leave it alone unless
+you are building your own fork.
+
 # Support the mod
 
 Loose Lips is free and always will be. If it made your city more alive and you would like to
