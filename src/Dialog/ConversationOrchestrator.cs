@@ -71,7 +71,11 @@ namespace LooseLips.Dialog
                 NpcReply reply = null;
                 try
                 {
-                    reply = await Player2Client.GenerateReplyAsync(systemPrompt, history, turnMessage)
+                    // The player typed this line themselves and is standing there waiting for an
+                    // answer. If the model stops mid-object, ask again rather than making them
+                    // type it a second time; the citizen's own turns are not rationed.
+                    reply = await Player2Client.GenerateReplyAsync(systemPrompt, history, turnMessage,
+                                                                  retryIfUnusable: true)
                                                .ConfigureAwait(false);
                 }
                 catch (Exception e)

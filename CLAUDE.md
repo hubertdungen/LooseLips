@@ -42,9 +42,16 @@ config gate, aliases, conflict group, handler. The vocabulary offered to the mod
 ## Build, test, install
 
 ```bash
-dotnet build -c IL2CPP          # the mod
-cd tests && dotnet run          # 25 off-engine checks, no game needed
+dotnet build -c IL2CPP              # the mod
+cd tests && dotnet run              # 33 off-engine checks, no game needed
+python tests/scenarios.py           # does a citizen do what they said? live app, costs joules
+python tests/investigation.py       # does conversation produce usable evidence? same
 ```
+
+The two Python harnesses talk to the live Player2 app and cost credits - about a joule a turn,
+so a full run of both is a few dozen. They read the effect vocabulary and the prompt out of the
+mod's own source rather than restating either, and `investigation.py` mirrors what
+`Player2Client` does with a failed reply, so neither can quietly drift from the shipped mod.
 
 Deployment is a manual copy of `bin/IL2CPP/net6.0/LooseLips.dll` into
 `<BepInEx profile>/plugins/LooseLips/`. **The DLL is locked while the game runs** — close it
@@ -94,6 +101,17 @@ endpoints only answer when it is present.
   Invisible on a stocked account, decisive on a free one — hence `RequestBudget`.
 - 401 / 402 / 429 mean not signed in / out of credits / too fast. Told apart in
   `Player2Status`.
+- **The model stops mid-object on some prompts, and `finish_reason` still says `stop`.** It is
+  not a length cutoff and not a refusal - the reply simply ends after forty to sixty
+  characters, usually inside the private reasoning. It is **prompt-sensitive, not random**:
+  accusing a citizen whose ground truth said "I am the murderer the player is hunting" did it
+  11 times in 12, the same accusation to an innocent citizen 0 times in 8, and rewording the
+  secret to "I am the one responsible for the death they are investigating" took it to 4 in 12.
+  Hence `ReplySalvage`, the retry in `GenerateReplyAsync`, and the wording in
+  `GroundTruthReader`. **Never treat unparseable output as speech** - that is how a citizen
+  ends up saying `{"reason": "I am maintaining my composure and` out loud.
+- **Roughly a joule per exchange in practice**, not the third of one measured early on: these
+  prompts run past 1000 tokens. 150 calls of the test harnesses cost 153.
 - **TTS is unusably slow**: 45 s to synthesise six words. Babbler is the better voice.
 - **STT returns transcript only, no amplitude** — whisper/shout detection would have to
   measure the microphone locally.

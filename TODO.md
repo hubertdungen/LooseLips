@@ -9,6 +9,12 @@ Ordered by how much each one changes the experience, not by how hard it is.
 - [x] **Stop hard-coding one machine's profile path** — done in 0.15.1. Resolves the
       `LOOSELIPS_BEPINEX` variable, then a Thunderstore "Modded" profile, then a BepInEx folder
       beside the game, and explains itself if none of those exist.
+- [ ] **Stop holding a `Citizen` while the player types.** `ChatOverlay._target` and the
+      closure each preset hands to `onSubmit` both keep one alive for as long as the box is
+      open, which is the one thing `CLAUDE.md` says never to do - the game recycles citizen
+      objects, so a long pause mid-sentence can put the line in front of somebody else. Store
+      `humanID` and re-resolve on submit, the way `ConversationOrchestrator` already does
+      internally. Not seen happening yet; it is a matter of when, not whether.
 - [ ] Package for Thunderstore: `dist/` zip with `manifest.json`, `icon.png`, `README.md`,
       `CHANGELOG.md` and the DLL at the right depth.
 - [ ] mod.io page (Shadows of Doubt uses mod.io, **not** Steam Workshop). Images already

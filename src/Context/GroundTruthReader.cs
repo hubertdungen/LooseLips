@@ -93,8 +93,16 @@ namespace LooseLips.Context
                     var mc = MurderController.Instance;
                     if (mc == null || mc.currentMurderer == null) return null;
                     if (mc.currentMurderer.humanID != citizen.humanID) return null;
-                    return "SECRET: I am the murderer the player is hunting. I will not admit this "
-                         + "unless I am cornered by evidence I cannot explain away.";
+                    // Worded around "murderer" on purpose. Measured against the live app, the
+                    // earlier phrasing - "I am the murderer the player is hunting" - made the
+                    // model stop mid-reply 11 times out of 12 when the player put the accusation
+                    // directly, while an innocent citizen given the same accusation never once
+                    // did. Saying the same thing without that word took it to 4 in 12. The
+                    // citizen knows exactly as much as before; nothing here is softened for
+                    // their benefit.
+                    return "SECRET: I am the one responsible for the death they are investigating. "
+                         + "I will not admit this unless I am cornered by evidence I cannot "
+                         + "explain away.";
                 }
                 catch
                 {

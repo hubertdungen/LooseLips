@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using Il2CppSystem.Reflection;
 using LooseLips.Core;
+using UnityEngine;
 
 namespace LooseLips.Dialog
 {
@@ -90,11 +91,78 @@ namespace LooseLips.Dialog
             }
         }
 
+        /// <summary>
+        /// Which of our options, if any, this preset is.
+        ///
+        /// Identity is checked by native pointer before anything is read off the object.
+        /// Reading a property from a preset the engine has destroyed throws, and this runs
+        /// inside a Harmony prefix where a throw means the game's own WarnNotewriter runs
+        /// instead - on a citizen with no notewriter to warn, which is a crash and a
+        /// dialogue option that silently does nothing.
+        /// </summary>
         private static CustomDialogPreset Lookup(DialogPreset preset)
         {
-            if (preset == null || string.IsNullOrEmpty(preset.name)) return null;
-            CustomDialogPreset custom;
-            return Interceptors.TryGetValue(preset.name, out custom) ? custom : null;
+            if (preset == null) return null;
+
+            try
+            {
+                var ptr = preset.Pointer;
+                foreach (var custom in Interceptors.Values)
+                {
+                    var mine = custom.Preset;
+                    if (mine != null && mine.Pointer == ptr) return custom;
+                }
+            }
+            catch { }
+
+            try
+            {
+                if (string.IsNullOrEmpty(preset.name)) return null;
+                CustomDialogPreset byName;
+                return Interceptors.TryGetValue(preset.name, out byName) ? byName : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // --- The option the player just chose ------------------------------------
+        //
+        // DialogController.preset is a field shared by every dialogue in the city, and the
+        // borrowed method reads it rather than being handed the preset for this call. When
+        // something else writes to it in between - a citizen holding their own conversation,
+        // a third-party mod rebuilding the option list - the interception misses and the
+        // vanilla method runs. Remembering what ExecuteDialog was called with closes that
+        // window. Only the same frame counts, so a genuine WarnNotewriter later is never
+        // mistaken for ours.
+
+        private static CustomDialogPreset _chosen;
+        private static int _chosenFrame = -1;
+
+        private static void RememberChosen(CustomDialogPreset custom)
+        {
+            _chosen = custom;
+            _chosenFrame = Time.frameCount;
+        }
+
+        private static CustomDialogPreset TakeChosen()
+        {
+            var custom = _chosen;
+            if (custom == null || Time.frameCount != _chosenFrame) return null;
+            _chosen = null;
+            _chosenFrame = -1;
+            return custom;
+        }
+
+        private static string _lastComplaint;
+
+        /// <summary>One line per distinct problem, however often it happens.</summary>
+        private static void ComplainOnce(string message)
+        {
+            if (_lastComplaint == message) return;
+            _lastComplaint = message;
+            Plugin.Log.LogWarning(message);
         }
 
         // --- Patches ------------------------------------------------------------
@@ -144,6 +212,16 @@ namespace LooseLips.Dialog
                 NewRoom roomRef, SideJob jobRef)
             {
                 var custom = Lookup(__instance.preset);
+
+                if (custom == null)
+                {
+                    custom = TakeChosen();
+                    if (custom != null)
+                        ComplainOnce("DialogController.preset was not the option the player chose; " +
+                                     "fell back to what ExecuteDialog was called with this frame. " +
+                                     custom.Name + " still ran.");
+                }
+
                 if (custom == null) return true;   // a real WarnNotewriter call; leave it alone
 
                 try
@@ -191,11 +269,16 @@ namespace LooseLips.Dialog
                 Interactable saysTo, NewNode where, Actor saidBy,
                 ref DialogController.ForceSuccess forceSuccess)
             {
-                if (forceSuccess != DialogController.ForceSuccess.none) return;
                 if (dialog == null) return;
 
                 var custom = Lookup(dialog.preset);
                 if (custom == null) return;
+
+                // Before anything else, and whatever the outcome already is: this is the one
+                // place the game tells us which option was picked.
+                RememberChosen(custom);
+
+                if (forceSuccess != DialogController.ForceSuccess.none) return;
 
                 Citizen citizen = null;
                 try

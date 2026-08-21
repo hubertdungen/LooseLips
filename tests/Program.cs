@@ -111,6 +111,36 @@ internal static class Program
         Check("relationship kept", oneBadField.RelationshipDelta != null);
 
         Console.WriteLine();
+        Console.WriteLine("A reply that stopped in the middle");
+
+        // Measured against the live app: an accusation put to the murderer came back cut off
+        // like this eleven times in twelve. It used to be spoken out loud, verbatim.
+        const string cutOffEarly = "{\"reason\": \"I am maintaining my composure and";
+        Check("half an object is not speech", ReplySalvage.LooksLikeMachineOutput(cutOffEarly));
+        Check("and nothing is salvaged from it", ReplySalvage.SpeechFromPartialJson(cutOffEarly) == null);
+
+        const string cutAfterSpeech = "{\"reason\": \"deflect\", \"speech\": \"That's a bold claim.\", \"alarm\": 0.1,";
+        Check("a finished line is taken whole",
+            ReplySalvage.SpeechFromPartialJson(cutAfterSpeech) == "That's a bold claim.",
+            ReplySalvage.SpeechFromPartialJson(cutAfterSpeech) ?? "null");
+
+        const string cutMidSentence = "{\"speech\": \"I told you already. Now get out of my b";
+        Check("an unfinished line is cut back to the last full sentence",
+            ReplySalvage.SpeechFromPartialJson(cutMidSentence) == "I told you already.",
+            ReplySalvage.SpeechFromPartialJson(cutMidSentence) ?? "null");
+
+        const string cutBeforeAnySentence = "{\"speech\": \"Now get out of my b";
+        Check("half a sentence is not worth speaking",
+            ReplySalvage.SpeechFromPartialJson(cutBeforeAnySentence) == null);
+
+        Check("a fenced object is machine output too",
+            ReplySalvage.LooksLikeMachineOutput("```json\n{\n  \"reason\": \"x\""));
+        Check("plain prose still gets spoken",
+            !ReplySalvage.LooksLikeMachineOutput("Station's two blocks east. You can't miss the lights."));
+        Check("a citizen quoting a colon is not machine output",
+            !ReplySalvage.LooksLikeMachineOutput("He said it plain: \"the docks, after eleven\"."));
+
+        Console.WriteLine();
         Console.WriteLine(_failed == 0
             ? "All " + _passed + " checks passed."
             : _passed + " passed, " + _failed + " FAILED.");

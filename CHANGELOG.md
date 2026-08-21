@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.17.0
+
+Two ways a conversation could come to nothing, and a harness that measures whether talking to
+people is worth doing at all.
+
+### The reply that stopped in the middle
+
+* **A citizen never speaks the schema again.** The model does not always finish. Accuse
+  somebody whose ground truth says they are the killer and the reply came back cut off after
+  forty to sixty characters, mid-object, **eleven times out of twelve** - measured against the
+  live app; the same accusation put to an innocent citizen never did it once. `ParseReply`
+  treated anything it could not deserialise as a spoken line, so at the exact moment a player
+  corners the murderer, the murderer said `{"reason": "I am maintaining my composure and` out
+  loud. Machine output is now recognised and refused, and the citizen shows the unavailable
+  beat instead - see `ReplySalvage`.
+* **A line that was finished still gets said.** If the reply stopped after the speech field,
+  that line is real and the citizen says it. An unfinished one is cut back to its last whole
+  sentence, because a short answer reads as a short answer while half a word reads as a bug.
+  The turn carries no effects either way, and is marked not well formed.
+* **The player's own turn is asked again when it comes back empty.** Up to twice, inside an
+  eight second window, and only when the app itself answered - a 401 or a timeout says the same
+  thing twice. Measured on the worst prompt: one turn in five is empty, one in sixteen after a
+  second ask, none after a third. Background chatter is deliberately not retried; it is
+  rationed by `RequestBudget` precisely because it is not worth spending twice on.
+* **The murderer's secret is worded without the word.** "I am the murderer the player is
+  hunting" was itself most of the trigger: saying the same thing as "I am the one responsible
+  for the death they are investigating" took truncation from 11 in 12 down to 4 in 12, and the
+  citizen knows exactly as much as before.
+
+### Investigation
+
+* **`tests/investigation.py`** asks whether conversation produces evidence a detective can act
+  on, and refuses to produce evidence that is not there. Six hypotheses against the live app;
+  it mirrors what `Player2Client` does rather than the bare endpoint, so it cannot report
+  failures the player never meets. All six hold, 48 of 48 samples: a witness asked well hands
+  over a real lead, a witness with nothing to give invents nothing, being asked about the wrong
+  person does not put them at the scene, a good reason gets the exact door code and a demand
+  gets none of it, and the murderer does not fold on a bare accusation.
+
+### Why "Say something..." sometimes did nothing at all
+
+* **The dialogue options no longer die on a scene change.** They are `ScriptableObject`s made
+  at runtime, and nothing owned them, so Unity was free to destroy them whenever the game
+  changed scene. The game's own dialogue lists kept the dead reference: the option was still
+  drawn, still clickable, and resolved to nothing. `HideAndDontSave` keeps them for the life of
+  the process and out of the save file.
+* **A destroyed preset used to take the conversation down with it.** Looking one up read
+  `preset.name` first, which throws once the object is gone - inside a Harmony prefix, where a
+  throw means the game's own `WarnNotewriter` runs instead, on a citizen who has no notewriter
+  to warn. Identity is now checked by pointer before anything is read, and the whole lookup is
+  guarded.
+* **The option the player chose is remembered for the frame.** `DialogController.preset` is one
+  field shared by every dialogue in the city and the borrowed method reads it rather than being
+  handed ours, so anything writing to it in between - a citizen holding their own conversation,
+  another mod rebuilding the list - made the interception miss. It falls back to what
+  `ExecuteDialog` was called with, and says so in the log once.
+
+Found in a log where DialogUIRework crashed halfway through sorting the options - it reads
+`option.option.preset.msgID` with no null check, so our dead preset took it down, and every
+option it had already hidden stayed hidden. That is the empty, unresponsive dialogue list.
+
 ## 0.16.1
 
 A repository that invites forks still only built on one machine.

@@ -4,3 +4,4 @@ obj/
 dist/
 tests/bin/
 tests/obj/
+__pycache__/

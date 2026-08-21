@@ -31,6 +31,17 @@ namespace LooseLips.Dialog
         protected static DialogPreset NewPreset(string name, string msgID, int ranking)
         {
             var preset = ScriptableObject.CreateInstance<DialogPreset>();
+
+            // Unity destroys a ScriptableObject nobody owns when the scene changes, and the
+            // game changes scene often. The game's own dialogue lists go on holding the dead
+            // reference, so the option is still drawn and still clickable - it simply no longer
+            // resolves to anything, which reads in play as "Say something... does nothing".
+            // Worse, a mod that walks the option list and reads preset.msgID without a null
+            // check takes a NullReferenceException mid-loop and leaves every option it had
+            // already hidden still hidden. HideAndDontSave keeps the preset alive for the
+            // process and out of the save file.
+            preset.hideFlags = HideFlags.HideAndDontSave;
+
             preset.name = name;
             preset.msgID = msgID;
             preset.defaultOption = true;             // offered to everyone, not tied to a case

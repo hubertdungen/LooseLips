@@ -26,6 +26,11 @@ namespace LooseLips.Player2
 
         private static Timer _heartbeat;
 
+        /// <summary>How long the player's own turn may go on being retried before we accept
+        /// that the citizen has nothing to say. A retry is cheap; an unexplained silence in
+        /// front of somebody you just spoke to is not.</summary>
+        private static readonly TimeSpan RetryWindow = TimeSpan.FromSeconds(8);
+
         /// <summary>True once a health probe has succeeded. Reset if the app goes away.</summary>
         public static bool Available { get; private set; }
 
@@ -118,9 +123,16 @@ namespace LooseLips.Player2
         /// <summary>
         /// Ask the model for a citizen's reply. Returns null when the request fails, which
         /// callers treat as "fall back to the scripted line".
+        ///
+        /// <paramref name="retryIfUnusable"/> asks once more when the app answered but the
+        /// citizen was left with nothing to say - the model stopping mid-object is stochastic,
+        /// so a second ask usually lands. It is off by default and belongs to the player's own
+        /// turn: background chatter is rationed by <see cref="RequestBudget"/> precisely because
+        /// it is not worth spending twice on.
         /// </summary>
         public static async Task<NpcReply> GenerateReplyAsync(
-            string systemPrompt, IReadOnlyList<ChatMessage> history, string userTurn, CancellationToken ct = default)
+            string systemPrompt, IReadOnlyList<ChatMessage> history, string userTurn,
+            CancellationToken ct = default, bool retryIfUnusable = false)
         {
             var req = new ChatRequest
             {
@@ -132,6 +144,57 @@ namespace LooseLips.Player2
             if (history != null) req.Messages.AddRange(history);
             req.Messages.Add(ChatMessage.User(userTurn));
 
+            var attempt = await AttemptAsync(req, systemPrompt, userTurn, ct).ConfigureAwait(false);
+
+            // Only worth asking again when the app itself was fine. A 401, a 402 or a timeout
+            // answers the same way twice and the second one costs the player another wait.
+            if (!retryIfUnusable || !attempt.Delivered || Usable(attempt.Reply)) return attempt.Reply;
+
+            // Measured on the prompt that provokes this most - accusing the murderer - one in
+            // five turns comes back with nothing to say, one in sixteen after a second ask, and
+            // none after a third. Two retries is where the measurement stopped paying, and the
+            // clock is the real limit anyway: nobody wants to stand in front of a citizen for
+            // fifteen seconds waiting to find out they have nothing to say.
+            var spent = System.Diagnostics.Stopwatch.StartNew();
+            var firstFailure = attempt.Reply;
+
+            for (var retry = 0; retry < 2 && spent.Elapsed < RetryWindow; retry++)
+            {
+                MainThread.Post(() => Plugin.Log.LogInfo(
+                    "The model returned nothing the citizen could say. Asking again."));
+
+                attempt = await AttemptAsync(req, systemPrompt, userTurn, ct).ConfigureAwait(false);
+                if (Usable(attempt.Reply)) return attempt.Reply;
+                if (!attempt.Delivered) break;
+            }
+
+            // Keep the first failure rather than the last: it is the one whose timing and raw
+            // text describe the turn the player actually asked for.
+            return firstFailure;
+        }
+
+        private static bool Usable(NpcReply reply)
+            => reply != null && !string.IsNullOrWhiteSpace(reply.Speech);
+
+        /// <summary>
+        /// One request. <see cref="Delivered"/> separates "the app answered and the model let
+        /// us down" from "the app never answered", which is the only thing worth retrying.
+        /// </summary>
+        private readonly struct Attempt
+        {
+            public readonly NpcReply Reply;
+            public readonly bool Delivered;
+
+            public Attempt(NpcReply reply, bool delivered)
+            {
+                Reply = reply;
+                Delivered = delivered;
+            }
+        }
+
+        private static async Task<Attempt> AttemptAsync(
+            ChatRequest req, string systemPrompt, string userTurn, CancellationToken ct)
+        {
             string raw;
             var clock = System.Diagnostics.Stopwatch.StartNew();
             try
@@ -153,7 +216,7 @@ namespace LooseLips.Player2
                     LastError = (int)resp.StatusCode + ": " + Truncate(errBody, 400);
                     var captured = LastError;
                     MainThread.Post(() => Plugin.Log.LogWarning("Player2 chat request failed - " + captured));
-                    return Failed(clock, captured);
+                    return new Attempt(Failed(clock, captured), false);
                 }
 
                 var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -168,19 +231,19 @@ namespace LooseLips.Player2
             }
             catch (OperationCanceledException)
             {
-                return Failed(clock, "timed out after " + ModConfig.RequestTimeoutSeconds.Value + " s");
+                return new Attempt(Failed(clock, "timed out after " + ModConfig.RequestTimeoutSeconds.Value + " s"), false);
             }
             catch (Exception e)
             {
                 LastError = e.Message;
                 MainThread.Post(() => Plugin.Log.LogWarning("Player2 chat request threw: " + e.Message));
-                return Failed(clock, e.Message);
+                return new Attempt(Failed(clock, e.Message), false);
             }
 
             clock.Stop();
             var parsed2 = ParseReply(raw);
             if (parsed2 != null) parsed2.LatencyMs = clock.ElapsedMilliseconds;
-            return parsed2;
+            return new Attempt(parsed2, true);
         }
 
         /// <summary>
@@ -222,8 +285,25 @@ namespace LooseLips.Player2
                 }
             }
 
-            // The model ignored the schema. Treat the whole thing as a spoken line so the
-            // conversation still works instead of dropping the turn.
+            // The object would not parse. Before giving up on the turn, take the line the
+            // citizen had already said if there is one - a reply cut off after the speech
+            // field is still a reply.
+            var salvaged = ReplySalvage.SpeechFromPartialJson(raw);
+            if (salvaged != null)
+            {
+                return new NpcReply { Speech = Sanitise(salvaged), Truthfulness = 1f, Raw = raw, WellFormed = false };
+            }
+
+            // Nothing spoken, and what came back is the schema rather than speech. Saying it
+            // out loud is worse than saying nothing: the caller shows the citizen's unavailable
+            // beat instead, and the raw text is kept for the transcript.
+            if (ReplySalvage.LooksLikeMachineOutput(raw))
+            {
+                return new NpcReply { Speech = null, Raw = raw, WellFormed = false };
+            }
+
+            // The model ignored the schema and simply talked. Treat the whole thing as a spoken
+            // line so the conversation still works instead of dropping the turn.
             return new NpcReply { Speech = Sanitise(raw), Truthfulness = 1f, Raw = raw, WellFormed = false };
         }
 
