@@ -96,6 +96,7 @@ namespace LooseLips.World
             }
 
             Declared[citizen.humanID] = Stance.Ally;
+            Core.WorldMemory.Save();
             return null;
         }
 
@@ -107,6 +108,7 @@ namespace LooseLips.World
 
             Declared[citizen.humanID] = Stance.Hostile;
             FollowDirector.Stop(citizen);   // an enemy does not tag along
+            Core.WorldMemory.Save();
             return null;
         }
 
@@ -117,6 +119,28 @@ namespace LooseLips.World
         }
 
         public static void Clear() => Declared.Clear();
+
+        /// <summary>Declared stances, for saving. Feelings are the game's own and save themselves.</summary>
+        public static Dictionary<string, string> Export()
+        {
+            var saved = new Dictionary<string, string>();
+            foreach (var pair in Declared) saved[pair.Key.ToString()] = pair.Value.ToString();
+            return saved;
+        }
+
+        public static void Restore(Dictionary<string, string> saved)
+        {
+            Declared.Clear();
+            if (saved == null) return;
+
+            foreach (var pair in saved)
+            {
+                int id;
+                if (!int.TryParse(pair.Key, out id)) continue;
+                try { Declared[id] = (Stance)Enum.Parse(typeof(Stance), pair.Value, true); }
+                catch { }   // a stance this build no longer has is simply forgotten
+            }
+        }
 
         public static bool IsAlly(Citizen citizen) => Of(citizen) == Stance.Ally;
 

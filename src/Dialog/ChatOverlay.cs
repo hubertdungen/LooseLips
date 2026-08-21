@@ -90,8 +90,9 @@ namespace LooseLips.Dialog
             // Everything that came back from a network call lands here.
             MainThread.Drain();
 
-            // Recall this city's conversations as soon as the city exists.
+            // Recall this city's conversations, and what they achieved, as soon as it exists.
             ConversationMemory.EnsureLoaded();
+            WorldMemory.EnsureLoaded();
 
             // Citizens holding their own conversations, and the lines already queued from one.
             DelayedSpeech.Tick();

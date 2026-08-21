@@ -63,6 +63,7 @@ namespace LooseLips.World
                 For = forWhat,
                 MadeAt = UnityEngine.Time.time
             };
+            Core.WorldMemory.Save();
             return null;
         }
 
@@ -111,6 +112,7 @@ namespace LooseLips.World
                 catch { }
 
                 Outstanding.Remove(citizen.humanID);
+                Core.WorldMemory.Save();
 
                 // Being paid what was asked buys real goodwill, over and above the words.
                 try
@@ -133,6 +135,42 @@ namespace LooseLips.World
         }
 
         public static void Clear() => Outstanding.Clear();
+
+        /// <summary>
+        /// Unsettled prices, for saving. The clock is not saved with them: a price agreed
+        /// yesterday should still stand when you come back, not be a few seconds from expiring.
+        /// </summary>
+        public static Dictionary<string, Core.WorldMemory.Owed> Export()
+        {
+            var saved = new Dictionary<string, Core.WorldMemory.Owed>();
+            foreach (var pair in Outstanding)
+            {
+                saved[pair.Key.ToString()] = new Core.WorldMemory.Owed
+                {
+                    Amount = pair.Value.Amount,
+                    For = pair.Value.For
+                };
+            }
+            return saved;
+        }
+
+        public static void Restore(Dictionary<string, Core.WorldMemory.Owed> saved)
+        {
+            Outstanding.Clear();
+            if (saved == null) return;
+
+            foreach (var pair in saved)
+            {
+                int id;
+                if (!int.TryParse(pair.Key, out id) || pair.Value == null) continue;
+                Outstanding[id] = new Demand
+                {
+                    Amount = pair.Value.Amount,
+                    For = pair.Value.For,
+                    MadeAt = UnityEngine.Time.time   // the offer stands from now
+                };
+            }
+        }
 
         private static int ParseAmount(string text)
         {

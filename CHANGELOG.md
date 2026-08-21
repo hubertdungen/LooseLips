@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.14.0
+
+* **What a conversation achieved now survives the session.** This closes the worst
+  inconsistency in the mod: conversations already persisted, so a citizen would greet you
+  remembering word for word that they had sworn to back you up - and not be your ally, because
+  that part lived only in memory. Forgetting is forgivable; remembering the promise and not the
+  commitment is not. Allegiances and unsettled prices are kept per city alongside the
+  conversations, and a price named yesterday still stands, with its clock restarted rather than
+  expiring the moment you load.
+  Followers are deliberately not kept - somebody trailing you through a save and a quit is
+  stranger than them having wandered off, and the arrangement runs on a timer anyway.
+* Real donation links.
+
 ## 0.13.0
 
 **An effect now has to have a reason to be offered at all.**

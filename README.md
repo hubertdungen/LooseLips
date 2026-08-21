@@ -140,8 +140,8 @@ you are building your own fork.
 Loose Lips is free and always will be. If it made your city more alive and you would like to
 throw something in the hat:
 
-<!-- TODO before release: replace REPLACE_ME with the real PayPal.me handle -->
-**[☕ Donate via PayPal](https://www.paypal.com/paypalme/REPLACE_ME)**
+**[💵 Donate via PayPal](https://www.paypal.com/donate/?hosted_button_id=UQW23PY9YRUAQ)** &nbsp;·&nbsp;
+**[☕ Buy me a coffee on Ko-fi](https://ko-fi.com/hubertkenobi)**
 
 Entirely optional. Bug reports and pull requests are worth just as much.
 

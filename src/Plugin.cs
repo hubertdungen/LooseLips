@@ -43,6 +43,8 @@ namespace LooseLips
             Player2Client.Shutdown();
             ConversationMemory.Save();
             ConversationMemory.Clear();
+            WorldMemory.Save();
+            WorldMemory.Clear();
             World.FollowDirector.StopAll();
             World.Allegiance.Clear();
             World.Negotiation.Clear();

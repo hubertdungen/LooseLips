@@ -6,7 +6,6 @@ Ordered by how much each one changes the experience, not by how hard it is.
 
 - [ ] **Confirm 0.10.0 onwards in game.** The follower fix, the Appearance tab, third-party
       opinions and reactions to what you do all compile and none has been seen working.
-- [ ] **Replace the PayPal placeholder** in `README.md` — currently `paypalme/REPLACE_ME`.
 - [ ] **Stop hard-coding one machine's profile path** in `Directory.Build.props:12`. Nobody
       else can build without editing it.
 - [ ] Package for Thunderstore: `dist/` zip with `manifest.json`, `icon.png`, `README.md`,
@@ -23,13 +22,12 @@ Ordered by how much each one changes the experience, not by how hard it is.
 
 ## Consequences that evaporate
 
-The single worst inconsistency in the mod right now. Conversations persist between sessions;
-what they achieved does not.
-
-- [ ] **Persist allegiance** — somebody remembers swearing loyalty word for word and is no
-      longer your ally. That contradiction is worse than having no memory at all.
-- [ ] **Persist outstanding prices** from `Negotiation`.
-- [ ] **Persist followers**, or at least say goodbye properly on load.
+- [x] **Persist allegiance** — done in 0.14.0. Somebody who took your side still has, next
+      session.
+- [x] **Persist outstanding prices** from `Negotiation` — done. A price named yesterday still
+      stands, and the clock restarts rather than expiring the moment you load.
+- [ ] Followers are deliberately *not* persisted: somebody trailing you through a save and a
+      quit is stranger than them having wandered off. Revisit only if that reads badly in play.
 
 ## Making the city feel alive
 
