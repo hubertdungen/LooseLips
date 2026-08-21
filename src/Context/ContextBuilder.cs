@@ -134,6 +134,7 @@ namespace LooseLips.Context
             Try(() => s.IsFollowingPlayer = FollowDirector.IsFollowing(citizen));
             Try(() => s.AllegianceNote = Allegiance.Describe(citizen));
             Try(() => s.PendingDemand = Negotiation.PendingFor(citizen));
+            Try(() => s.Opinions.AddRange(Opinion.KnownPeople(citizen)));
 
             return s;
         }

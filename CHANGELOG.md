@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.12.0
+
+The three things a conversation still could not reach.
+
+* **Turning people against each other.** Talk somebody into thinking better or worse of a
+  third person - the first thing in this mod that changes a relationship you are not part of,
+  and fenced accordingly: only about somebody they genuinely know or can see, capped lower
+  than opinions about you, and **closeness resists**. At the default, somebody's oldest friend
+  is five times harder to turn than a passing acquaintance, because people do not drop a
+  friend of twenty years over one sentence from a stranger.
+* **Standing up for somebody else.** In a fight, they go after whoever is attacking the person
+  named. Out of one, they call the police off them. So taking a side does something real
+  whether or not there is already violence.
+* **Reacting to what you do.** People remark on you drawing a weapon, putting it away, or
+  producing something from your pocket - only when somebody is close enough to see it, and
+  only on the change, because standing around holding a wrench is not news. The first reading
+  after loading is swallowed, so a save does not open with somebody screaming about a weapon
+  you have been carrying all along.
+* Citizens are now told what they think of the people they know, so an opinion can be argued
+  over instead of invented.
+
 ## 0.11.0
 
 * **An Appearance tab.** Theme (Rain, Neon, Amber, Paper, or the game's own colours), a hue

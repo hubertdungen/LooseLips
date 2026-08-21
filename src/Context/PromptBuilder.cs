@@ -59,6 +59,15 @@ namespace LooseLips.Context
                 sb.AppendLine();
             }
 
+            if (s.Opinions.Count > 0)
+            {
+                sb.AppendLine("# What you think of people");
+                foreach (var o in s.Opinions) sb.AppendLine("- " + o);
+                sb.AppendLine("These are the only people you can be argued into seeing differently, and the");
+                sb.AppendLine("closer you are to somebody the less one conversation will move you.");
+                sb.AppendLine();
+            }
+
             sb.AppendLine("# What you actually know");
             if (s.GroundTruth.Count == 0)
             {

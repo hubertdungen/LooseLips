@@ -85,5 +85,8 @@ namespace LooseLips.Context
 
         /// <summary>An unsettled price they have already named.</summary>
         public string PendingDemand;
+
+        /// <summary>People they know and how they feel about each, so opinions can be argued over.</summary>
+        public List<string> Opinions = new List<string>();
     }
 }

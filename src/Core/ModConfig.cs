@@ -68,6 +68,10 @@ namespace LooseLips.Core
         public static ConfigEntry<float> AllyLikeThreshold;
         public static ConfigEntry<float> AllyNerveThreshold;
         public static ConfigEntry<bool> AllowNegotiation;
+        public static ConfigEntry<bool> AllowThirdPartyOpinion;
+        public static ConfigEntry<float> MaxOpinionShiftPerLine;
+        public static ConfigEntry<float> LoyaltyResistance;
+        public static ConfigEntry<bool> ReactToWhatYouDo;
         public static ConfigEntry<int> MaxDemand;
         public static ConfigEntry<float> DemandExpiry;
         public static ConfigEntry<float> PaymentGoodwill;
@@ -164,6 +168,9 @@ namespace LooseLips.Core
                 "Citizens near you say something when they notice a crime, get frightened, start a fight or " +
                 "bolt - written for who they are and what they saw, rather than picked from a list. Off by " +
                 "default: every line is a few seconds of your own machine's time.");
+            ReactToWhatYouDo = cfg.Bind("Ambient life", "React to what you do, not just what happens", true,
+                "People remark on you drawing a weapon, putting it away, or walking somewhere you should not be. " +
+                "Needs ambient life switched on.");
             MaxAmbientPerHour = cfg.Bind("Ambient life", "Most reactions per hour of play", 40,
                 new ConfigDescription("A hard ceiling, whatever else is going on.",
                     new AcceptableValueRange<int>(0, 400)));
@@ -230,6 +237,17 @@ namespace LooseLips.Core
             AllyNerveThreshold = cfg.Bind("World effects", "Allies too frightened to help above", 0.75f,
                 new ConfigDescription("An ally more alarmed than this stays out of it.",
                     new AcceptableValueRange<float>(0f, 1f)));
+
+            AllowThirdPartyOpinion = cfg.Bind("World effects", "Allow turning people against each other", true,
+                "Talk somebody into thinking better or worse of a third person, or into standing up for them. " +
+                "Only ever about somebody they genuinely know or can see.");
+            MaxOpinionShiftPerLine = cfg.Bind("World effects", "Most one line can change an opinion", 0.12f,
+                new ConfigDescription("Deliberately lower than the cap on how they feel about you: poisoning a " +
+                    "friendship should take a campaign, not a sentence.",
+                    new AcceptableValueRange<float>(0f, 1f)));
+            LoyaltyResistance = cfg.Bind("World effects", "How much closeness resists persuasion", 0.8f,
+                new ConfigDescription("At 0.8, somebody's oldest friend is five times harder to turn than a " +
+                    "passing acquaintance.", new AcceptableValueRange<float>(0f, 1f)));
 
             AllowNegotiation = cfg.Bind("World effects", "Allow haggling and paying people", true,
                 "Citizens can name a price for what they know, and be paid it out of your own money. " +

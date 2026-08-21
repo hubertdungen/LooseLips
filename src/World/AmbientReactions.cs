@@ -45,6 +45,11 @@ namespace LooseLips.World
         }
 
         private static readonly Dictionary<int, Watched> LastSeen = new Dictionary<int, Watched>();
+
+        /// <summary>What the player was last seen holding, so a change can be noticed.</summary>
+        private static string _playerHeld = "";
+        private static bool _playerArmed;
+        private static bool _watchingPlayerStarted;
         private static readonly Queue<Trigger> Pending = new Queue<Trigger>();
         private static float _nextPoll;
 
@@ -93,6 +98,7 @@ namespace LooseLips.World
             {
                 _nextPoll = Time.time + 0.5f;
                 try { Poll(); } catch { }
+                try { WatchThePlayer(); } catch { }
             }
 
             Drain();
@@ -154,6 +160,109 @@ namespace LooseLips.World
                 last.InCombat = c.ai.inCombat;
                 last.Fleeing = c.ai.inFleeState;
             }
+        }
+
+        /// <summary>
+        /// Notice what the player themselves is doing.
+        ///
+        /// Everything else here reacts to the world; this reacts to you, which is the half that
+        /// makes a street feel like it is watching. Only changes are reported: standing around
+        /// holding a wrench is not news, drawing one is. The first reading is swallowed so
+        /// loading a save does not read as you producing a weapon from nowhere.
+        /// </summary>
+        private static void WatchThePlayer()
+        {
+            if (!ModConfig.ReactToWhatYouDo.Value) return;
+
+            var player = Player.Instance;
+            if (player == null) return;
+
+            string held = "";
+            var armed = false;
+
+            try
+            {
+                var item = player.rightHandInteractable ?? player.leftHandInteractable;
+                if (item != null)
+                {
+                    held = item.GetName();
+                    try { armed = item.preset != null && item.preset.weapon != null; }
+                    catch { armed = false; }
+                }
+            }
+            catch { return; }
+
+            if (!_watchingPlayerStarted)
+            {
+                _watchingPlayerStarted = true;
+                _playerHeld = held;
+                _playerArmed = armed;
+                return;
+            }
+
+            if (held == _playerHeld && armed == _playerArmed) return;
+
+            var wasArmed = _playerArmed;
+            _playerHeld = held;
+            _playerArmed = armed;
+
+            // Only somebody who can actually see it has anything to say about it.
+            var witness = NearestWatcher();
+            if (witness == null) return;
+
+            if (armed && !wasArmed)
+            {
+                Enqueue(new Trigger
+                {
+                    Who = witness,
+                    What = "The investigator in front of you has just drawn a " + Describe(held) + ".",
+                    Suggested = VoiceLevel.Shout
+                });
+            }
+            else if (!armed && wasArmed)
+            {
+                Enqueue(new Trigger
+                {
+                    Who = witness,
+                    What = "The investigator has just put their weapon away.",
+                    Suggested = VoiceLevel.Normal
+                });
+            }
+            else if (!string.IsNullOrEmpty(held))
+            {
+                Enqueue(new Trigger
+                {
+                    Who = witness,
+                    What = "The investigator has just taken out a " + Describe(held) + ".",
+                    Suggested = VoiceLevel.Whisper
+                });
+            }
+        }
+
+        private static string Describe(string item)
+            => string.IsNullOrWhiteSpace(item) ? "something" : item.ToLowerInvariant();
+
+        /// <summary>The closest person who could plausibly have seen it.</summary>
+        private static Citizen NearestWatcher()
+        {
+            var player = Player.Instance;
+            if (player == null) return null;
+
+            Citizen best = null;
+            var bestDistance = float.MaxValue;
+
+            foreach (var c in Earshot.CitizensWhoCanHear(player, false))
+            {
+                if (c == null || c.ai == null) continue;
+                try
+                {
+                    if (c.isAsleep || c.isDead) continue;
+                    var d = Vector3.Distance(c.transform.position, player.transform.position);
+                    if (d < bestDistance) { bestDistance = d; best = c; }
+                }
+                catch { }
+            }
+            return best;
         }
 
         private static void Enqueue(Trigger trigger)
@@ -294,6 +403,9 @@ namespace LooseLips.World
         {
             LastSeen.Clear();
             Pending.Clear();
+            _playerHeld = "";
+            _playerArmed = false;
+            _watchingPlayerStarted = false;
         }
     }
 }

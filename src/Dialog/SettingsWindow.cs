@@ -218,6 +218,7 @@ namespace LooseLips.Dialog
             Toggle(ModConfig.EnableAmbientLife, "React to crimes, fights, fright and people bolting");
             if (ModConfig.EnableAmbientLife.Value)
             {
+                Toggle(ModConfig.ReactToWhatYouDo, "React to what you do - drawing a weapon, putting it away");
                 IntSlider(ModConfig.MaxAmbientPerHour, "At most", 0, 400, " per hour");
                 FloatSlider(ModConfig.MinSecondsBetweenAmbient, "No sooner than every", 5f, 300f, " s");
                 FloatSlider(ModConfig.PerCitizenCooldown, "Same person again after", 15f, 900f, " s");
@@ -275,6 +276,12 @@ namespace LooseLips.Dialog
             {
                 Toggle(ModConfig.AlliesDefendYou, "Allies step in when you are attacked");
                 FloatSlider(ModConfig.AllyLikeThreshold, "Liking needed to side with you", 0f, 1f, "");
+            }
+            Toggle(ModConfig.AllowThirdPartyOpinion, "Turn people against each other, or stand up for somebody");
+            if (ModConfig.AllowThirdPartyOpinion.Value)
+            {
+                FloatSlider(ModConfig.MaxOpinionShiftPerLine, "Most one line can change an opinion", 0f, 1f, "");
+                FloatSlider(ModConfig.LoyaltyResistance, "Closeness resists persuasion", 0f, 1f, "");
             }
             Toggle(ModConfig.AllowNegotiation, "Name a price, and be paid it");
             if (ModConfig.AllowNegotiation.Value)

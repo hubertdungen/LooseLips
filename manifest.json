@@ -1,6 +1,6 @@
 {
   "name": "LooseLips",
-  "version_number": "0.11.0",
+  "version_number": "0.12.0",
   "website_url": "https://github.com/hubertdungen/LooseLips",
   "description": "Talk to anyone in your own words, or shout. A local AI answers, and what it says changes the world.",
   "dependencies": []

@@ -103,6 +103,20 @@ namespace LooseLips.World
                 gate: () => ModConfig.AllowAllegiance.Value, conflicts: "allegiance",
                 aliases: new[] { "oppose_them", "become_hostile" });
 
+            // --- What they think of other people ---------------------------------
+            Add("warn_them_against", "you turn them against somebody else; put that person's name in target",
+                r => Opinion.Shift(r.Speaker, r.Target, -ModConfig.MaxOpinionShiftPerLine.Value, r.Shouted),
+                gate: () => ModConfig.AllowThirdPartyOpinion.Value, conflicts: "opinion",
+                aliases: new[] { "badmouth", "poison_against", "turn_against_someone" });
+            Add("speak_well_of", "you raise their opinion of somebody else; put that person's name in target",
+                r => Opinion.Shift(r.Speaker, r.Target, ModConfig.MaxOpinionShiftPerLine.Value, r.Shouted),
+                gate: () => ModConfig.AllowThirdPartyOpinion.Value, conflicts: "opinion",
+                aliases: new[] { "vouch_for_someone", "praise" });
+            Add("stand_up_for", "you take somebody else's side against whoever is threatening them; name them in target",
+                r => Opinion.StandUpFor(r.Speaker, r.Target, r.Shouted),
+                gate: () => ModConfig.AllowThirdPartyOpinion.Value,
+                aliases: new[] { "defend_someone", "protect_someone" });
+
             // --- Money for words -------------------------------------------------
             Add("name_a_price", "you will talk, for money; put the amount in target and what for in detail",
                 r => Negotiation.Demand_(r.Speaker, r.Target, r.Detail),
