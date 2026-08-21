@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.15.1
+
+* **Anybody can build the repository now.** The BepInEx path was hard-coded to one machine's
+  Thunderstore profile, so a fork could not compile without editing a file first - a poor
+  first impression for a mod that invites forks. It now resolves `LOOSELIPS_BEPINEX`, then a
+  Thunderstore "Modded" profile, then a BepInEx folder beside the game, and says exactly what
+  to set if none of those exist.
+
 ## 0.15.0
 
 * **People who know you speak first.** Until now nobody in this city ever opened their mouth

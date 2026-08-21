@@ -6,8 +6,9 @@ Ordered by how much each one changes the experience, not by how hard it is.
 
 - [ ] **Confirm 0.10.0 onwards in game.** The follower fix, the Appearance tab, third-party
       opinions and reactions to what you do all compile and none has been seen working.
-- [ ] **Stop hard-coding one machine's profile path** in `Directory.Build.props:12`. Nobody
-      else can build without editing it.
+- [x] **Stop hard-coding one machine's profile path** — done in 0.15.1. Resolves the
+      `LOOSELIPS_BEPINEX` variable, then a Thunderstore "Modded" profile, then a BepInEx folder
+      beside the game, and explains itself if none of those exist.
 - [ ] Package for Thunderstore: `dist/` zip with `manifest.json`, `icon.png`, `README.md`,
       `CHANGELOG.md` and the DLL at the right depth.
 - [ ] mod.io page (Shadows of Doubt uses mod.io, **not** Steam Workshop). Images already

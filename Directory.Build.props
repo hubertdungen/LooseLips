@@ -7,8 +7,26 @@
         <RunPostBuildEvent>Always</RunPostBuildEvent>
     </PropertyGroup>
 
-    <!-- The user's Thunderstore Mod Manager profile. Change this if you switch profiles. -->
+    <!--
+        Where BepInEx lives. The build needs the interop assemblies from a real installation,
+        and every machine puts them somewhere different, so this is resolved in order:
+
+          1. the LOOSELIPS_BEPINEX environment variable, if you set one
+          2. a Thunderstore Mod Manager profile called "Modded" in the usual place
+          3. a plain BepInEx folder next to the game, for manual installs
+
+        Hard-coding one path meant nobody else could build the repository without editing it,
+        which is a poor first impression for a mod that invites forks.
+    -->
     <PropertyGroup>
-        <BepInExPath>C:/Users/huber/AppData/Roaming/Thunderstore Mod Manager/DataFolder/ShadowsofDoubt/profiles/Modded/BepInEx/</BepInExPath>
+        <ThunderstoreProfile>$(APPDATA)/Thunderstore Mod Manager/DataFolder/ShadowsofDoubt/profiles/Modded/BepInEx/</ThunderstoreProfile>
+
+        <BepInExPath Condition="'$(LOOSELIPS_BEPINEX)' != ''">$(LOOSELIPS_BEPINEX)</BepInExPath>
+        <BepInExPath Condition="'$(BepInExPath)' == '' And Exists('$(ThunderstoreProfile)interop')">$(ThunderstoreProfile)</BepInExPath>
+        <BepInExPath Condition="'$(BepInExPath)' == ''">$(MSBuildThisFileDirectory)../../BepInEx/</BepInExPath>
     </PropertyGroup>
+
+    <Target Name="ExplainMissingBepInEx" BeforeTargets="Build" Condition="!Exists('$(BepInExPath)interop')">
+        <Error Text="No BepInEx interop assemblies at '$(BepInExPath)'. Point LOOSELIPS_BEPINEX at your BepInEx folder - the one containing 'interop' - and build again. Note that BepInEx regenerates those assemblies while the game starts, so a build during that window fails too; wait and retry." />
+    </Target>
 </Project>
