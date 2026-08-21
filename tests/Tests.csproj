@@ -13,6 +13,9 @@
     <Compile Include="Shims.cs" />
     <Compile Include="../src/Player2/Player2Dtos.cs" />
     <Compile Include="../src/Player2/TolerantJson.cs" />
+    <!-- CitizenSnapshot is pure data and EffectCatalogue now depends on it, so the harness
+         needs the real thing rather than a stub - a stub would let the two drift. -->
+    <Compile Include="../src/Context/CitizenSnapshot.cs" />
     <Compile Include="../src/World/EffectCatalogue.cs" />
   </ItemGroup>
 </Project>
