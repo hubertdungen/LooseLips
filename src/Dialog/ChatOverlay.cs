@@ -92,6 +92,7 @@ namespace LooseLips.Dialog
 
             // Recall this city's conversations, and what they achieved, as soon as it exists.
             ConversationMemory.EnsureLoaded();
+            ConversationMemory.Flush();
             WorldMemory.EnsureLoaded();
 
             // Citizens holding their own conversations, and the lines already queued from one.

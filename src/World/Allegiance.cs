@@ -151,9 +151,18 @@ namespace LooseLips.World
         /// Fear wins over loyalty here: an ally who is already panicking will not wade in, which
         /// keeps a declared ally from being an invincible switch.
         /// </summary>
+        private static float _nextDefendCheck;
+
         public static void DefendPlayer()
         {
             if (!ModConfig.AllowAllegiance.Value || !ModConfig.AlliesDefendYou.Value) return;
+
+            // This was running every frame, and the check it performs is the widest earshot
+            // sweep in the mod. Somebody starting a fight is not an event that needs
+            // millisecond resolution: four times a second is faster than anyone can react
+            // anyway, and it costs a sixteenth of the work.
+            if (Time.time < _nextDefendCheck) return;
+            _nextDefendCheck = Time.time + 0.25f;
 
             var player = Player.Instance;
             if (player == null) return;

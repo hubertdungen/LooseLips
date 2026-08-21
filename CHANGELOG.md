@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.16.0
+
+Nothing new to do, but a good deal less work while doing it.
+
+* **Allies stopped checking for a fight sixty times a second.** The check that lets an ally
+  step in for you was running every frame, and it performs the widest earshot sweep in the mod
+  - rooms, occupants and a distance test each. Somebody starting a fight does not need
+  millisecond resolution; four times a second is faster than anyone can react, at a sixteenth
+  of the cost.
+* **Working out who can hear something is now cached for a tenth of a second.** Several parts
+  of the mod want that answer in the same instant and were each walking the rooms again for it.
+  People do not move far in 100 ms.
+* **The transcript no longer grows forever.** It rolls over at 4 MB, keeping one previous file
+  - what anybody needs is the recent past, not the first conversation they ever had.
+* **Conversations are written to disk on a schedule, not on every line.** Saving serialises
+  every conversation in the city, and doing that in the frame that just finished a reply is a
+  stutter you can feel. Still saved on the way out, so nothing is lost.
+
 ## 0.15.1
 
 * **Anybody can build the repository now.** The BepInEx path was hard-coded to one machine's

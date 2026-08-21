@@ -31,7 +31,62 @@ namespace LooseLips.World
         /// dead, and anyone asleep or unconscious.
         /// </summary>
         public static List<Citizen> CitizensWhoCanHear(Actor origin, bool shouted)
-            => Gather(origin, Radius(shouted), shouted);
+            => Cached(origin, Radius(shouted), shouted);
+
+        /// <summary>
+        /// A very short-lived cache in front of the sweep.
+        ///
+        /// Working out who can hear something means walking rooms, their occupants and a
+        /// distance check each - three allocations and a lot of pointer chasing. Several parts
+        /// of the mod want that answer in the same instant, and one of them was asking sixty
+        /// times a second, so the same walk was being repeated for an answer that cannot
+        /// meaningfully change between frames. People do not move far in a tenth of a second.
+        ///
+        /// Keyed on the origin and radius, because "who can hear a whisper from here" and "who
+        /// can hear a shout from here" are different questions.
+        /// </summary>
+        private static readonly Dictionary<long, CachedSweep> Recent = new Dictionary<long, CachedSweep>();
+
+        private sealed class CachedSweep
+        {
+            public float TakenAt;
+            public List<Citizen> Result;
+        }
+
+        private const float CacheSeconds = 0.1f;
+
+        private static List<Citizen> Cached(Actor origin, float radius, bool shouted)
+        {
+            if (origin == null) return new List<Citizen>();
+
+            long key;
+            try { key = ((long)origin.GetInstanceID() << 20) ^ (long)(radius * 100f); }
+            catch { return Gather(origin, radius, shouted); }
+
+            CachedSweep sweep;
+            if (Recent.TryGetValue(key, out sweep) && Time.time - sweep.TakenAt < CacheSeconds)
+                return sweep.Result;
+
+            var fresh = Gather(origin, radius, shouted);
+            Recent[key] = new CachedSweep { TakenAt = Time.time, Result = fresh };
+
+            // The dictionary is keyed by actor, so it would otherwise grow with every citizen
+            // the mod ever asked about.
+            if (Recent.Count > 32) Prune();
+            return fresh;
+        }
+
+        private static void Prune()
+        {
+            var stale = new List<long>();
+            foreach (var pair in Recent)
+            {
+                if (Time.time - pair.Value.TakenAt >= CacheSeconds) stale.Add(pair.Key);
+            }
+            foreach (var key in stale) Recent.Remove(key);
+        }
+
+        public static void ClearCache() => Recent.Clear();
 
         private static List<Citizen> Gather(Actor origin, float radius, bool shouted)
         {

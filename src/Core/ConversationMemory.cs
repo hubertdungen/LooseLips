@@ -65,7 +65,24 @@ namespace LooseLips.Core
             }
             while (thread.Count > max) thread.RemoveAt(0);
 
-            if (ModConfig.RememberBetweenSessions.Value) Save();
+            // Marked rather than written. Saving serialises every conversation in the city, and
+            // doing that inside the frame that just finished a reply is a stutter you can feel;
+            // the flush happens on its own schedule and on the way out.
+            _dirty = true;
+        }
+
+        private static bool _dirty;
+        private static float _nextFlush;
+
+        /// <summary>Write out if anything changed and enough time has passed. Called each frame.</summary>
+        public static void Flush()
+        {
+            if (!_dirty || !ModConfig.RememberBetweenSessions.Value) return;
+            if (UnityEngine.Time.time < _nextFlush) return;
+
+            _nextFlush = UnityEngine.Time.time + 20f;
+            _dirty = false;
+            Save();
         }
 
         public static void Forget(int citizenId)

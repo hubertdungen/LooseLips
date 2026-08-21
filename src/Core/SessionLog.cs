@@ -131,6 +131,36 @@ namespace LooseLips.Core
             Write("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text + Environment.NewLine);
         }
 
+        /// <summary>
+        /// Roll the transcript over once it gets large.
+        ///
+        /// It is append-only and never deleted, so a long-running install would grow one file
+        /// forever - and the thing anybody actually needs is the recent past, not the first
+        /// conversation they ever had. One previous file is kept, which is enough to cover a
+        /// crash that happens just after a roll.
+        /// </summary>
+        private static void RollIfLarge()
+        {
+            try
+            {
+                if (_path == null || !File.Exists(_path)) return;
+                if (new FileInfo(_path).Length < 4L * 1024 * 1024) return;
+
+                var previous = _path + ".1";
+                if (File.Exists(previous)) File.Delete(previous);
+                File.Move(_path, previous);
+
+                Plugin.Log.LogInfo("Transcript reached 4 MB; the older half is now " +
+                                   System.IO.Path.GetFileName(previous) + ".");
+            }
+            catch
+            {
+                // Not being able to roll is not a reason to stop writing.
+            }
+        }
+
+        private static int _writesSinceCheck;
+
         private static void Write(string text)
         {
             lock (Gate)
@@ -138,6 +168,14 @@ namespace LooseLips.Core
                 try
                 {
                     if (!_headerWritten) BeginSession("(session already running)");
+
+                    // Checking the file size on every line would be its own small cost.
+                    if (++_writesSinceCheck >= 50)
+                    {
+                        _writesSinceCheck = 0;
+                        RollIfLarge();
+                    }
+
                     File.AppendAllText(_path, text, Encoding.UTF8);
                 }
                 catch (Exception e)
