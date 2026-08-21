@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.16.1
+
+A repository that invites forks still only built on one machine.
+
+* **The build finds BepInEx whatever the profile is called.** 0.15.1 stopped hard-coding one
+  path, but the Thunderstore profile it looked for still had to be named `Modded`. Anybody who
+  renamed theirs - this machine's is `Geral-Full-Mods` - was back to setting an environment
+  variable by hand before the mod, or even the off-engine tests, would compile. Any profile
+  holding interop assemblies now qualifies, and `LOOSELIPS_BEPINEX` still wins when it is set,
+  which is how you pick between several.
+* **A clone that lives inside the game folder builds too.** The manual-install fallback looked
+  one level too far out and found nothing.
+* **The discovery runs before NuGet's assets are resolved, not after.** Later than that, the
+  explicit reference to the profile's `Il2CppInterop.Runtime` no longer displaces the copy that
+  comes down with the package, and the build stops with CS1704 - the same assembly imported
+  twice. The reference list in the project file is guarded for the same reason, so the two
+  routes to it can never both fire. Both are written down in `CLAUDE.md`; neither is guessable
+  from the failure.
+
 ## 0.16.0
 
 Nothing new to do, but a good deal less work while doing it.

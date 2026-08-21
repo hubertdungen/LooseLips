@@ -4,10 +4,10 @@
 		<Product>Loose Lips</Product>
 		<Description>Talk to anyone in Shadows of Doubt in your own words. A local AI answers, and what it says changes the world.</Description>
 		<RootNamespace>LooseLips</RootNamespace>
-		<Version>0.16.0</Version>
+		<Version>0.16.1</Version>
 		<BepInExPluginGuid>dev.hubert.looselips</BepInExPluginGuid>
 		<BepInExPluginName>Loose Lips</BepInExPluginName>
-		<BepInExPluginVersion>0.16.0</BepInExPluginVersion>
+		<BepInExPluginVersion>0.16.1</BepInExPluginVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>disable</Nullable>
@@ -38,8 +38,13 @@
 		Reference the Il2CppInterop proxy assemblies the game actually runs against, not the
 		stock UnityEngine reference assemblies. The proxies derive from Il2CppObjectBase, which
 		is what makes Cast/TryCast and the Il2Cpp collection types available.
+
+		Guarded on the folder existing: when BepInEx was found by scanning the Thunderstore
+		profiles instead, that happens too late for this list and the same references are
+		added there. Adding them in both places imports Il2CppInterop.Runtime twice, which
+		is an error, not a warning.
 	-->
-	<ItemGroup>
+	<ItemGroup Condition="Exists('$(BepInExPath)interop')">
 		<Reference Include="$(BepInExPath)core/Il2CppInterop.Runtime.dll" Private="false" />
 		<Reference Include="$(BepInExPath)interop/*.dll" Private="false" />
 	</ItemGroup>

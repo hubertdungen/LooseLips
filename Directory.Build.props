@@ -12,21 +12,55 @@
         and every machine puts them somewhere different, so this is resolved in order:
 
           1. the LOOSELIPS_BEPINEX environment variable, if you set one
-          2. a Thunderstore Mod Manager profile called "Modded" in the usual place
-          3. a plain BepInEx folder next to the game, for manual installs
+          2. a Thunderstore Mod Manager profile called "Modded", the name the manager suggests
+          3. a plain BepInEx folder beside the repository, for a clone inside the game folder
+          4. a plain BepInEx folder one level further out, for manual installs
+          5. failing all of those, any Thunderstore profile that has interop assemblies - see
+             ResolveBepInExFromAnyProfile below
 
         Hard-coding one path meant nobody else could build the repository without editing it,
         which is a poor first impression for a mod that invites forks.
     -->
     <PropertyGroup>
-        <ThunderstoreProfile>$(APPDATA)/Thunderstore Mod Manager/DataFolder/ShadowsofDoubt/profiles/Modded/BepInEx/</ThunderstoreProfile>
+        <ThunderstoreProfiles>$(APPDATA)/Thunderstore Mod Manager/DataFolder/ShadowsofDoubt/profiles/</ThunderstoreProfiles>
 
         <BepInExPath Condition="'$(LOOSELIPS_BEPINEX)' != ''">$(LOOSELIPS_BEPINEX)</BepInExPath>
-        <BepInExPath Condition="'$(BepInExPath)' == '' And Exists('$(ThunderstoreProfile)interop')">$(ThunderstoreProfile)</BepInExPath>
+        <BepInExPath Condition="'$(BepInExPath)' == '' And Exists('$(ThunderstoreProfiles)Modded/BepInEx/interop')">$(ThunderstoreProfiles)Modded/BepInEx/</BepInExPath>
+        <BepInExPath Condition="'$(BepInExPath)' == '' And Exists('$(MSBuildThisFileDirectory)../BepInEx/interop')">$(MSBuildThisFileDirectory)../BepInEx/</BepInExPath>
         <BepInExPath Condition="'$(BepInExPath)' == ''">$(MSBuildThisFileDirectory)../../BepInEx/</BepInExPath>
     </PropertyGroup>
 
+    <!--
+        People rename their profiles, and a build that only knows the default name is still a
+        build that only works on one machine. This runs only when nothing above resolved, and
+        has to be a target rather than a property: profile names are not known until the
+        wildcard is expanded, and item lists do not exist yet while properties are evaluated.
+
+        Assembly-CSharp.dll is the marker. It appears only once BepInEx has generated the
+        interop assemblies, so a profile that has never launched the game is skipped rather
+        than picked and then failed on. If several profiles qualify, the last one wins; set
+        LOOSELIPS_BEPINEX to say which you meant.
+    -->
+    <Target Name="ResolveBepInExFromAnyProfile"
+            BeforeTargets="ResolvePackageAssets;ResolveAssemblyReferences;ExplainMissingBepInEx"
+            Condition="!Exists('$(BepInExPath)interop') And Exists('$(ThunderstoreProfiles)')">
+        <ItemGroup>
+            <ThunderstoreInterop Include="$(ThunderstoreProfiles)*/BepInEx/interop/Assembly-CSharp.dll" />
+        </ItemGroup>
+
+        <PropertyGroup>
+            <BepInExPath>$([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName('%(ThunderstoreInterop.FullPath)'))))/</BepInExPath>
+        </PropertyGroup>
+
+        <ItemGroup Condition="Exists('$(BepInExPath)interop')">
+            <Reference Include="$(BepInExPath)core/Il2CppInterop.Runtime.dll" Private="false" />
+            <Reference Include="$(BepInExPath)interop/*.dll" Private="false" />
+        </ItemGroup>
+
+        <Message Importance="normal" Text="Loose Lips: building against BepInEx at '$(BepInExPath)'." Condition="Exists('$(BepInExPath)interop')" />
+    </Target>
+
     <Target Name="ExplainMissingBepInEx" BeforeTargets="Build" Condition="!Exists('$(BepInExPath)interop')">
-        <Error Text="No BepInEx interop assemblies at '$(BepInExPath)'. Point LOOSELIPS_BEPINEX at your BepInEx folder - the one containing 'interop' - and build again. Note that BepInEx regenerates those assemblies while the game starts, so a build during that window fails too; wait and retry." />
+        <Error Text="No BepInEx interop assemblies at '$(BepInExPath)', and no Thunderstore profile under '$(ThunderstoreProfiles)' has any either. Point LOOSELIPS_BEPINEX at your BepInEx folder - the one containing 'interop' - and build again. Note that BepInEx regenerates those assemblies while the game starts, so a build during that window fails too; wait and retry." />
     </Target>
 </Project>

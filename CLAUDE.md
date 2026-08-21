@@ -48,8 +48,18 @@ cd tests && dotnet run          # 25 off-engine checks, no game needed
 
 Deployment is a manual copy of `bin/IL2CPP/net6.0/LooseLips.dll` into
 `<BepInEx profile>/plugins/LooseLips/`. **The DLL is locked while the game runs** — close it
-first. `Directory.Build.props` points at one specific Thunderstore profile and must be
-edited per machine.
+first.
+
+`Directory.Build.props` finds BepInEx by itself and should not need editing: the
+`LOOSELIPS_BEPINEX` variable wins if set, then a Thunderstore profile called `Modded`, then a
+BepInEx folder beside the repository or beside the game, and finally **any** Thunderstore
+profile that has interop assemblies — people rename their profiles. That last step has to run
+as a target rather than a property, because profile names are not known until a wildcard is
+expanded and item lists do not exist yet while properties are evaluated. It runs before
+`ResolvePackageAssets` on purpose: added any later, the explicit reference to the profile's
+`Il2CppInterop.Runtime` no longer displaces the NuGet copy, and the build fails with CS1704 —
+the same assembly imported twice. For the same reason the reference list in `LooseLips.csproj`
+is guarded on the folder existing, so the two paths never both contribute.
 
 ## Environment facts that cost time to rediscover
 
