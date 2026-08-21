@@ -115,8 +115,35 @@ namespace LooseLips.Context
                     sb.AppendLine("Naming anybody else is a lie, and the city will not back it up.");
                 }
                 sb.AppendLine();
-                sb.AppendLine("Only request an effect when the conversation genuinely earns it. Most turns need none.");
-                sb.AppendLine("Requesting something you cannot plausibly do will simply be ignored.");
+                // Restraint on ordinary turns, but no restraint at all on serious ones. Tested with
+                // only the discouraging half, an armed officer held at knifepoint answered
+                // "drop the knife" and requested nothing - correct words, no consequence, which
+                // reads in game as an officer who does not care that she is being robbed.
+                sb.AppendLine("Most ordinary turns need no effect at all - chat, directions and small talk");
+                sb.AppendLine("change nothing, and asking for an effect you cannot plausibly do is simply ignored.");
+                sb.AppendLine("But an effect is the only way anything actually happens. Saying you will do");
+                sb.AppendLine("something without requesting it means you did not do it.");
+                sb.AppendLine("So when the moment genuinely calls for action - you are threatened, cornered,");
+                sb.AppendLine("offered something you want, or given a reason to turn on somebody - request the");
+                sb.AppendLine("effect that matches what you just said you would do.");
+                sb.AppendLine();
+
+                // Worked examples, because telling the model to act did not work and showing it
+                // did. Measured over three samples of a citizen threatened at knifepoint: with
+                // the instruction alone an armed, hot-headed dockhand fought back 0 times out of
+                // 3 - defiant words, no consequence. With these two examples in front of it, 3
+                // out of 3. Giving in was already reliable; standing up was not, and the gap was
+                // the absence of an example rather than any missing permission.
+                sb.AppendLine("# Two examples of the difference");
+                sb.AppendLine("Cornered, and you decide to give in:");
+                sb.AppendLine("{\"speech\": \"All right, all right - take it.\", \"alarm\": 0.9,");
+                sb.AppendLine(" \"effects\": [{\"type\": \"give_money\", \"target\": \"40\"}]}");
+                sb.AppendLine();
+                sb.AppendLine("Cornered, and you decide to fight back. The effect is what makes it real:");
+                sb.AppendLine("{\"speech\": \"You picked the wrong doorway, friend.\", \"alarm\": 0.4,");
+                sb.AppendLine(" \"effects\": [{\"type\": \"attack_the_investigator\"}]}");
+                sb.AppendLine();
+                sb.AppendLine("Both are valid. Which one you are depends on your traits and what you are holding.");
             }
 
             return sb.ToString();

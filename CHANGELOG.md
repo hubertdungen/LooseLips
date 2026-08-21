@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.1
+
+* **Citizens now fight back.** Measured over three samples of somebody threatened at
+  knifepoint: an armed, hot-headed dockhand requested no effect at all 0 times out of 3 -
+  defiant words, nothing behind them. The prompt was the cause. It told the model that "most
+  turns need none", which is true of small talk and badly wrong at knifepoint, and telling it
+  otherwise barely helped. Two worked examples - one giving in, one fighting back - took the
+  same case to 3 out of 3. Handing over money was already reliable; standing up was not, and
+  the gap was a missing example rather than a missing permission.
+* Added TODO.md.
+
 ## 0.12.0
 
 The three things a conversation still could not reach.
