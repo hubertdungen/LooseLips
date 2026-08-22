@@ -83,6 +83,12 @@ is guarded on the folder existing, so the two paths never both contribute.
   reference eventually drives a different person — it showed up in testing as a follower
   being visually replaced by a stranger. Store `humanID` and re-resolve with
   `CityData.Instance.GetHuman(id, out human, false)`.
+- **The case board is reached through `CasePanelController.Instance`**: `activeCase` is the open
+  one, and `PinToCasePanel(case, evidence, dataKey, ...)` files an entry under a key. A
+  citizen's own evidence entry is `citizen.interactable.evidence`, and the keys worth filing are
+  `Evidence.DataKey.name / address / work / jobTitle / partnerFirstName / telephoneNumber`.
+  Sightings are separate and go through `Human.RevealSighting`. Whether pinning also marks the
+  value *discovered* is unverified - see `Evidence.AddDiscovery` if a filed card reads "???".
 - Taking the mouse for a mod window needs the game's own API, not `UnityEngine.Cursor`
   (overwritten every frame): `InputController.Instance.SetMouseInputMode / SetCursorVisible /
   SetCursorLock`, plus `enableInput = false` to stop game hotkeys firing while typing, plus

@@ -115,6 +115,15 @@ namespace LooseLips.Context
                                   string.Join(", ", s.CanTestifyAbout) + ".");
                     sb.AppendLine("Naming anybody else is a lie, and the city will not back it up.");
                 }
+
+                if (s.CanDisclose.Count > 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine("Details about yourself you could let them write down: " +
+                                  string.Join(", ", s.CanDisclose) + ".");
+                    sb.AppendLine("Saying one out loud is not the same as letting them keep it - "
+                                + "request the effect when you mean them to have it on record.");
+                }
                 sb.AppendLine();
                 // Restraint on ordinary turns, but no restraint at all on serious ones. Tested with
                 // only the discouraging half, an armed officer held at knifepoint answered

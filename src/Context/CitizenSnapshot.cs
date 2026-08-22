@@ -71,6 +71,13 @@ namespace LooseLips.Context
         /// </summary>
         public List<string> CanTestifyAbout = new List<string>();
 
+        /// <summary>
+        /// Details about themselves this citizen could put in the player's case file - the ones
+        /// the game holds a real evidence key for. Same reasoning as CanTestifyAbout: naming
+        /// them is what stops the model offering an employer for somebody with no job.
+        /// </summary>
+        public List<string> CanDisclose = new List<string>();
+
         /// <summary>What is in their pockets, so the model cannot claim to have nothing.</summary>
         public List<string> Carrying = new List<string>();
 

@@ -174,6 +174,12 @@ namespace LooseLips.World
                 aliases: new[] { "testify", "reveal_sighting", "tell_what_i_know" },
                 relevant: s => s == null || s.CanTestifyAbout.Count > 0);
 
+            Add("give_up_a_detail", "you tell them something about yourself and it goes into their case file; put name, address, job, workplace, partner or phone in target",
+                r => Disclosure.Reveal(r.Speaker, r.Target),
+                gate: () => ModConfig.AllowDisclosure.Value,
+                aliases: new[] { "tell_them_about_myself", "disclose", "file_a_detail" },
+                relevant: s => s == null || s.CanDisclose.Count > 0);
+
             // --- Going somewhere ----------------------------------------------------
             Add("go", "you drop what you were doing and leave; put go_home, go_to_work, go_to_bed or leave in target",
                 r => GoalDirector.Send(r.Speaker, r.Target),

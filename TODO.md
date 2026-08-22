@@ -29,15 +29,19 @@ Ordered by how much each one changes the experience, not by how hard it is.
 
 ## What a conversation leaves behind
 
-- [ ] **Nothing a citizen says reaches the case board unless it is a sighting.** `Testimony` is
-      the only route in, it goes through `Human.RevealSighting`, and it is only offered when the
-      citizen has real `lastSightings` to give. So a name, a job, a relationship, an alibi, a
-      door code - all of it is said out loud, recorded in our own transcript, and then exists
-      nowhere the game can see. The first playtest read this as "the mod does not work": the
-      player asked eight people about somebody, got answers, and found an empty F menu.
-      Worth looking at how the game creates a note or a lead outside of sightings, and whether a
-      conversation can produce one honestly - the same rule applies, it may only record what the
-      citizen actually knew.
+- [ ] **Confirm in game that a filed detail reads as known, not as "???".** `Disclosure` pins
+      the citizen's own evidence entry under the key they gave up, with
+      `CasePanelController.PinToCasePanel`. That is the game's own pin and the only public API
+      for it, but IL2CPP hides the bodies, so whether pinning also counts as *discovering* the
+      value is the one thing that could not be settled off-engine. If the card comes up
+      redacted, the next thing to look at is `Evidence.AddDiscovery`.
+- [x] **A detail a citizen gives up now reaches the case board** - done. Name, address, job,
+      workplace, partner and telephone, and only the keys that citizen actually has.
+- [ ] **A claim that is not a sighting and not one of those keys still goes nowhere.** "He owed
+      me money", "she was afraid of him" - said, transcribed, invisible to the game. A sticky
+      note via `CasePanelController.NewStickyNote` is the obvious candidate, and the honesty
+      rule makes it awkward: a note is free text, so it would record something the game cannot
+      corroborate. Worth deciding deliberately rather than by default.
 - [ ] **Asking "do you know X" is not asking "did you see X".** The prompt should make that
       distinction to the model, and the mod should probably say so to the player too - the
       option that produces evidence is invisible when the citizen has nothing to testify about,

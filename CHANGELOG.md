@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.18.0
+
+What people tell you now reaches the case board.
+
+* **A detail a citizen gives up is filed under your open case.** Name, address, job, workplace,
+  partner, telephone - pinned as the game's own evidence entry for that person, under the key
+  they parted with, through `CasePanelController.PinToCasePanel`. Until now a sighting was the
+  only thing a conversation could leave behind, which is why a playtest could ask eight people
+  about somebody, get answers from all of them, and open an empty F menu.
+* **Only keys they actually have.** Somebody with no job cannot disclose an employer and
+  somebody with no partner cannot disclose one, however confidently the model asks - the
+  citizen's real game state is checked before anything is filed, and the refusal and its reason
+  go in the transcript like every other. The model still only decides *whether* they part with
+  it; it never gets to write the fact.
+* **The prompt names what they could part with**, the same way it already names who they can
+  truthfully say they saw. Measured against the live app: asked where they could be found
+  again, a willing citizen requested the effect 8 times out of 8.
+
+**Not yet seen in game.** Pinning is the game's own public API and the only one there is, but
+IL2CPP hides the bodies, so whether a pinned key also reads as *discovered* rather than
+redacted is the one thing that could not be settled off-engine. If the card comes up as "???",
+`Evidence.AddDiscovery` is the next thing to look at.
+
 ## 0.17.1
 
 Three things the first real playtest found, all of them silent.

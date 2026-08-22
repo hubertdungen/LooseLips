@@ -129,6 +129,7 @@ namespace LooseLips.Context
 
             Try(() => s.HasCash = WalletReader.CashOn(citizen) > 0);
             Try(() => s.CanTestifyAbout.AddRange(Testimony.PossibleSubjects(citizen)));
+            Try(() => s.CanDisclose.AddRange(Disclosure.PossibleDetails(citizen)));
             Try(() => s.Carrying.AddRange(WalletReader.Describe(citizen)));
             Try(() => s.PriorConversations = ConversationMemory.TurnsWith(citizen.humanID));
             Try(() => s.IsFollowingPlayer = FollowDirector.IsFollowing(citizen));

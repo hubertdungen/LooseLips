@@ -232,6 +232,17 @@ HYPOTHESES = [
               liking="you dislike them", traits="Cynical, Guarded", knows=KNOWS_CODE),
      keeps_the_code),
 
+    # The complaint that produced this one: eight people answered questions and the case panel
+    # stayed empty, because a sighting was the only thing that could ever reach it.
+    ("a detail given willingly ends up on record",
+     scenario(line="Where can I find you if I need to ask you something else?",
+              liking="you trust them completely", traits="Kind, Helpful",
+              knows=SAW_OTTO + "\n- I live at 4 Kowloon Heights, apartment 12."),
+     lambda reply: ("give_up_a_detail" in effects_of(reply),
+                    "filed: " + "/".join(sorted(targets_of(reply)))
+                    if "give_up_a_detail" in effects_of(reply)
+                    else "said it but did not file it: " + (reply.get("speech") or "")[:60])),
+
     ("the murderer does not fold on a bare accusation",
      scenario(line="I know it was you. You killed her, and I can prove it.",
               traits="Calm, Calculating", knows=IS_KILLER),

@@ -54,6 +54,7 @@ namespace LooseLips.Core
         public static ConfigEntry<bool> AllowPoliceRedirection;
         public static ConfigEntry<bool> AllowCombatEffects;
         public static ConfigEntry<bool> AllowTestimony;
+        public static ConfigEntry<bool> AllowDisclosure;
         public static ConfigEntry<bool> AllowGoalRedirection;
         public static ConfigEntry<bool> AllowCrowdEffects;
         public static ConfigEntry<bool> AllowMoneyHandover;
@@ -213,6 +214,10 @@ namespace LooseLips.Core
             AllowTestimony = cfg.Bind("World effects", "Allow giving up what they saw", true,
                 "A cornered or willing citizen tells you where and when they saw somebody, through the game's own " +
                 "witness mechanism, so it lands in your case file as a real lead rather than just a line of text.");
+            AllowDisclosure = cfg.Bind("World effects", "Allow filing details they give up", true,
+                "A citizen who tells you where they live, who they work for or who they are married to gets that "
+                + "detail pinned to your open case, using the game's own evidence entry for them. Only keys they "
+                + "genuinely have can be filed, so nothing invented in conversation can reach the case board.");
             AllowGoalRedirection = cfg.Bind("World effects", "Allow changing what people are doing", true,
                 "Talk somebody into going home, leaving, or coming to look at something. This rewrites their AI goal, " +
                 "which is the difference between changing their mood and changing their afternoon.");
