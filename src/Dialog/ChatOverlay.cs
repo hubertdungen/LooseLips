@@ -176,10 +176,15 @@ namespace LooseLips.Dialog
             GUI.SetNextControlName(ControlName);
             _text = GUILayout.TextField(_text ?? string.Empty, 300, GUILayout.Height(26f));
 
+            // Keep asking until the field actually has focus. Asking once was enough only when
+            // nothing else was competing for the keyboard: the game takes focus back on its own
+            // schedule while a dialogue is closing, and a box that looks ready but is not
+            // focused swallows everything typed into it - which reads, from the outside, as a
+            // message that was sent and arrived empty.
             if (_focusRequested)
             {
                 GUI.FocusControl(ControlName);
-                _focusRequested = false;
+                if (GUI.GetNameOfFocusedControl() == ControlName) _focusRequested = false;
             }
 
             GUILayout.BeginHorizontal();
@@ -253,10 +258,23 @@ namespace LooseLips.Dialog
         private static void Submit()
         {
             var line = (_text ?? string.Empty).Trim();
+
+            // Enter on an empty box used to close it and send nothing, silently. When the field
+            // had never taken focus that is indistinguishable from sending an empty message and
+            // getting an empty answer, because the game speaks the dialogue option either way.
+            // So stay open, take the keyboard again, and say so in the log.
+            if (line.Length == 0)
+            {
+                Plugin.Log.LogInfo("Nothing was typed, so nothing was said. Keeping the box open "
+                                 + "and asking for the keyboard again.");
+                _focusRequested = true;
+                return;
+            }
+
             var callback = _onSubmit;
             Close();
 
-            if (line.Length == 0 || callback == null) return;
+            if (callback == null) return;
 
             try
             {

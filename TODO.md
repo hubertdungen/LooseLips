@@ -27,6 +27,22 @@ Ordered by how much each one changes the experience, not by how hard it is.
       Player2 shares 10% of gross revenue with creators, attributed by the `player2-game-key`
       header, so this is also the step that makes the attribution mean something.
 
+## What a conversation leaves behind
+
+- [ ] **Nothing a citizen says reaches the case board unless it is a sighting.** `Testimony` is
+      the only route in, it goes through `Human.RevealSighting`, and it is only offered when the
+      citizen has real `lastSightings` to give. So a name, a job, a relationship, an alibi, a
+      door code - all of it is said out loud, recorded in our own transcript, and then exists
+      nowhere the game can see. The first playtest read this as "the mod does not work": the
+      player asked eight people about somebody, got answers, and found an empty F menu.
+      Worth looking at how the game creates a note or a lead outside of sightings, and whether a
+      conversation can produce one honestly - the same rule applies, it may only record what the
+      citizen actually knew.
+- [ ] **Asking "do you know X" is not asking "did you see X".** The prompt should make that
+      distinction to the model, and the mod should probably say so to the player too - the
+      option that produces evidence is invisible when the citizen has nothing to testify about,
+      which is correct and completely unexplained.
+
 ## Consequences that evaporate
 
 - [x] **Persist allegiance** — done in 0.14.0. Somebody who took your side still has, next

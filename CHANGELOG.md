@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.17.1
+
+Three things the first real playtest found, all of them silent.
+
+* **A citizen can no longer be locked out of conversation for good.** Being busy is what hides
+  "Say something..." from somebody, so an entry that never cleared did not delay a conversation
+  - it ended every future one with that person, permanently, with no message anywhere. Any of
+  several causes strand one (a request the app never answers, a scene change mid-flight, a
+  queued callback that never ran), so rather than chase each, an entry is now treated as stale
+  once no reply could still be coming, and says so in the log when it happens.
+* **Enter on an empty box keeps the box open instead of closing on nothing.** If the field had
+  never taken the keyboard - the game takes focus back on its own schedule while a dialogue
+  closes - everything typed went nowhere, and pressing Enter closed the box and sent silence.
+  From the outside that is a message sent empty and answered empty, because the game speaks the
+  dialogue option either way. The box now stays, asks for focus again, and keeps asking until
+  it actually has it.
+* **"Nothing to say" no longer looks like "still thinking".** Both beats were the same "...",
+  so a turn that had died was indistinguishable from one still in flight. The failure now says
+  so out loud and logs why - unreachable app, or a model that returned nothing usable even
+  after being asked again.
+* **The option being chosen is logged.** First breadcrumb in the one path a player watches
+  fail.
+
 ## 0.17.0
 
 Two ways a conversation could come to nothing, and a harness that measures whether talking to

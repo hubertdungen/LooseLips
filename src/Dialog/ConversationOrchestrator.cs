@@ -19,11 +19,38 @@ namespace LooseLips.Dialog
     /// </summary>
     public static class ConversationOrchestrator
     {
-        /// <summary>Citizens with a request currently in flight, so we do not stack turns.</summary>
-        private static readonly HashSet<int> Busy = new HashSet<int>();
+        /// <summary>
+        /// Citizens with a request in flight, and when it started, so we do not stack turns.
+        ///
+        /// The time matters. Being busy is what hides "Say something..." from a citizen, so an
+        /// entry that is never cleared does not delay a conversation - it ends every future one
+        /// with that person, permanently, with no message and nothing in the log. Anything that
+        /// could strand an entry here (a request the app never answers, a scene change while one
+        /// is in flight, a queued callback that never ran) has the same symptom, so rather than
+        /// chase each cause the entry is treated as stale once no reply could still be coming.
+        /// </summary>
+        private static readonly Dictionary<int, float> Busy = new Dictionary<int, float>();
+
+        /// <summary>Past this, no reply can still be on its way: the request timeout, three
+        /// attempts of it, and room for the retry window on top.</summary>
+        private static float StuckAfterSeconds
+            => ModConfig.RequestTimeoutSeconds.Value * 3f + 15f;
 
         public static bool IsBusy(Citizen citizen)
-            => citizen != null && Busy.Contains(citizen.humanID);
+        {
+            if (citizen == null) return false;
+
+            float since;
+            if (!Busy.TryGetValue(citizen.humanID, out since)) return false;
+
+            if (UnityEngine.Time.realtimeSinceStartup - since < StuckAfterSeconds) return true;
+
+            Busy.Remove(citizen.humanID);
+            Plugin.Log.LogWarning(citizen.GetCasualName() + " was still marked as thinking after "
+                + (int)StuckAfterSeconds + "s. Clearing it - a reply that late is never coming, "
+                + "and leaving it would have hidden the option for the rest of the session.");
+            return false;
+        }
 
         /// <summary>
         /// Begin an exchange. Returns immediately; the reply arrives later on the main thread.
@@ -33,12 +60,14 @@ namespace LooseLips.Dialog
             if (citizen == null || string.IsNullOrWhiteSpace(playerLine)) return;
 
             var id = citizen.humanID;
-            if (!Busy.Add(id))
+            if (IsBusy(citizen))
             {
-                if (ModConfig.VerboseLogging.Value)
-                    Plugin.Log.LogInfo("Ignoring a second line while " + citizen.GetCasualName() + " is still thinking.");
+                Plugin.Log.LogInfo("Ignoring a second line while " + citizen.GetCasualName()
+                                 + " is still thinking about the first.");
                 return;
             }
+
+            Busy[id] = UnityEngine.Time.realtimeSinceStartup;
 
             CitizenSnapshot snapshot;
             string systemPrompt;

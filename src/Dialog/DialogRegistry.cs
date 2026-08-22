@@ -224,6 +224,12 @@ namespace LooseLips.Dialog
 
                 if (custom == null) return true;   // a real WarnNotewriter call; leave it alone
 
+                // Always logged, not just when verbose. This is the first breadcrumb in the one
+                // path a player can see failing - option chosen, box opens, line sent - and
+                // without it a turn that goes nowhere leaves no trace at all to work from.
+                Plugin.Log.LogInfo(custom.Name + " chosen"
+                    + (saysTo != null ? " for " + saysTo.GetCasualName() : " with nobody on the other end"));
+
                 try
                 {
                     custom.RunDialogMethod(__instance, saysTo, saysToInteractable, where, saidBy,

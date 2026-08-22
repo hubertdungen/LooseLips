@@ -59,13 +59,26 @@ namespace LooseLips.Dialog
             Say(speaker, null, "...", shouted: false, interupt: false);
         }
 
-        /// <summary>Shown when Player2 is unreachable or returned nothing usable.</summary>
+        /// <summary>
+        /// Shown when Player2 is unreachable or returned nothing usable.
+        ///
+        /// Deliberately not "...", which is the thinking beat. Sharing that line meant a turn
+        /// that had died looked exactly like a turn still in flight, and the player was left
+        /// watching an empty bubble with no way to know whether waiting would help.
+        /// </summary>
         public static void ShowUnavailable(Citizen speaker)
         {
             if (speaker == null) return;
+
             var line = Player2Client_Available()
-                ? "..."
+                ? "I heard you. I just have nothing to say to that."
                 : "Sorry, I got nothing to say to you.";
+
+            Plugin.Log.LogWarning(speaker.GetCasualName() + " had nothing to say - "
+                + (Player2Client_Available()
+                    ? "the model returned nothing usable, even after asking again."
+                    : "the Player2 app is not reachable."));
+
             Say(speaker, null, line, shouted: false, interupt: true);
         }
 
