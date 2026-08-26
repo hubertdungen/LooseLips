@@ -26,6 +26,10 @@ namespace LooseLips.World
             public string Target;
             public string Detail;
             public bool Shouted;
+
+            /// <summary>What the player actually said this turn. Some effects are only
+            /// appropriate as an answer to it.</summary>
+            public string PlayerLine;
         }
 
         public sealed class Definition
@@ -65,6 +69,18 @@ namespace LooseLips.World
             /// refused with a reason rather than applied in whatever order they arrived.
             /// </summary>
             public string Conflicts;
+
+            /// <summary>
+            /// Whether this effect is only appropriate when the player invited it.
+            ///
+            /// Some effects are answers, not remarks. A citizen who lists everyone they saw
+            /// today because the player typed "Hmmm...." is not being helpful, they are
+            /// reciting a case file at somebody making small talk. The sightings are in the
+            /// prompt because they have to be for a real question to be answerable, and a model
+            /// handed a list will eventually find a reason to read it out. Judge the player's
+            /// line instead of trusting the model to hold back.
+            /// </summary>
+            public bool NeedsInvitation;
 
             public bool Offered => Enabled() && !string.IsNullOrEmpty(Description);
         }

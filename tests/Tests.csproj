@@ -20,5 +20,6 @@
          needs the real thing rather than a stub - a stub would let the two drift. -->
     <Compile Include="../src/Context/CitizenSnapshot.cs" />
     <Compile Include="../src/World/EffectCatalogue.cs" />
+    <Compile Include="../src/World/Invitation.cs" />
   </ItemGroup>
 </Project>

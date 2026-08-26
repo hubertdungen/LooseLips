@@ -30,10 +30,17 @@ namespace LooseLips.Dialog
         {
             if (saysTo == null) return;
 
+            // The id, not the object: the player may spend a while typing, and a Citizen
+            // reference held across those frames can end up pointing at somebody else.
+            var id = saysTo.humanID;
+
             ChatOverlay.Open(saysTo, shouted: false, onSubmit: line =>
             {
-                ConversationOrchestrator.Speak(saysTo, line, shouted: false,
-                    vanillaLine: VanillaLineCapture.TakeLastFor(saysTo));
+                var who = Humans.Resolve(id);
+                if (who == null) return;
+
+                ConversationOrchestrator.Speak(who, line, shouted: false,
+                    vanillaLine: VanillaLineCapture.TakeLastFor(who));
             });
         }
     }
@@ -67,10 +74,17 @@ namespace LooseLips.Dialog
         {
             if (saysTo == null) return;
 
+            // The id, not the object: the player may spend a while typing, and a Citizen
+            // reference held across those frames can end up pointing at somebody else.
+            var id = saysTo.humanID;
+
             ChatOverlay.Open(saysTo, shouted: true, onSubmit: line =>
             {
-                ConversationOrchestrator.Speak(saysTo, line, shouted: true,
-                    vanillaLine: VanillaLineCapture.TakeLastFor(saysTo));
+                var who = Humans.Resolve(id);
+                if (who == null) return;
+
+                ConversationOrchestrator.Speak(who, line, shouted: true,
+                    vanillaLine: VanillaLineCapture.TakeLastFor(who));
             });
         }
     }

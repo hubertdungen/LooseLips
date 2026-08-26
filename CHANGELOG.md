@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.18.2
+
+Three faults from the first sessions with an audience.
+
+* **A citizen could turn into somebody else mid-conversation.** The person you were talking
+  to was held as a `Citizen` reference from the moment the box opened until the reply came
+  back - the player's typing time plus several seconds of the model thinking. The game pools
+  those objects, so a long enough conversation ended with the reference driving a stranger,
+  and every effect the exchange earned landed on them. The overlay, both dialogue options and
+  the reply path now hold `humanID` and resolve it at the moment of use, which is what
+  `FollowDirector` already did and what the working notes have warned about all along.
+* **Your own line often never appeared.** The thinking beat was spoken in the same frame as
+  the player's line and replaced it before it could be read, which is why the box so often
+  looked empty. The citizen now stalls only once the model has actually been slow, and not at
+  all if the answer arrives first.
+* **Small talk stopped producing case files.** Asked what she ate, a citizen would answer;
+  told "Hmmm...." she would recite everyone she had seen that evening, with times and places.
+  The sightings are in the prompt so a real question can be answered, and a model handed a
+  list will find a reason to read it out - so the judgement is no longer left to it. Effects
+  that are answers rather than remarks are refused when nothing in the player's line asked for
+  them, and the prompt now says plainly that an investigator is not always working.
+
 ## 0.18.1
 
 Packaging only - the mod itself is unchanged from 0.18.0.

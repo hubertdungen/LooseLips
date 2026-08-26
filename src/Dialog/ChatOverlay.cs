@@ -20,7 +20,9 @@ namespace LooseLips.Dialog
         private static ChatOverlay _instance;
 
         private static bool _open;
-        private static Citizen _target;
+        /// <summary>Who is being spoken to, by id. Never the object: the box stays open for
+        /// as long as the player takes to type, and a Citizen does not survive that.</summary>
+        private static int _targetId;
         private static bool _shouted;
         private static Action<string> _onSubmit;
         private static string _text = string.Empty;
@@ -68,7 +70,7 @@ namespace LooseLips.Dialog
         public static void Open(Citizen target, bool shouted, Action<string> onSubmit)
         {
             GameInput.Claim();
-            _target = target;
+            _targetId = target != null ? target.humanID : 0;
             _shouted = shouted;
             _onSubmit = onSubmit;
             _text = string.Empty;
@@ -80,7 +82,7 @@ namespace LooseLips.Dialog
         {
             _open = false;
             if (!SettingsWindow.IsOpen) GameInput.Release();
-            _target = null;
+            _targetId = 0;
             _onSubmit = null;
             _text = string.Empty;
         }
@@ -166,7 +168,7 @@ namespace LooseLips.Dialog
 
             GUILayout.BeginArea(new Rect(x + 14f, y + 10f, WindowWidth - 28f, WindowHeight - 20f));
 
-            var who = SafeName(_target);
+            var who = SafeName(Humans.Resolve(_targetId));
             var header = _shouted ? "Shout at " + who : "Say to " + who;
             var heard = CountListeners();
             if (heard > 0) header += "   (" + heard + " other" + (heard == 1 ? "" : "s") + " within earshot)";
@@ -244,7 +246,7 @@ namespace LooseLips.Dialog
                 foreach (var c in Earshot.CitizensWhoCanHear(player, _shouted))
                 {
                     if (c == null) continue;
-                    if (_target != null && c.humanID == _target.humanID) continue;
+                    if (_targetId != 0 && c.humanID == _targetId) continue;
                     count++;
                 }
                 return count;

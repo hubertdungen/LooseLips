@@ -141,6 +141,25 @@ internal static class Program
             !ReplySalvage.LooksLikeMachineOutput("He said it plain: \"the docks, after eleven\"."));
 
         Console.WriteLine();
+        Console.WriteLine("Answering versus volunteering");
+        Check("a question invites an answer",
+            LooseLips.World.Invitation.WasInvited("Who did you see tonight?"));
+        Check("asking without a question mark still counts",
+            LooseLips.World.Invitation.WasInvited("tell me who was here"));
+        Check("a real sentence is the player's business",
+            LooseLips.World.Invitation.WasInvited("I have been walking this street all evening and I am tired"));
+        Check("humming is not a question",
+            !LooseLips.World.Invitation.WasInvited("Hmmm...."));
+        Check("trailing off is not a question",
+            !LooseLips.World.Invitation.WasInvited("Ok then..."));
+        Check("a flat statement is not a question",
+            !LooseLips.World.Invitation.WasInvited("I dont know them"));
+        Check("a declaration of love is not a request for testimony",
+            !LooseLips.World.Invitation.WasInvited("I'm in love with you"));
+        Check("nothing typed invites nothing",
+            !LooseLips.World.Invitation.WasInvited("   "));
+
+        Console.WriteLine();
         Console.WriteLine(_failed == 0
             ? "All " + _passed + " checks passed."
             : _passed + " passed, " + _failed + " FAILED.");

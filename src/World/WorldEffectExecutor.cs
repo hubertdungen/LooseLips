@@ -172,13 +172,15 @@ namespace LooseLips.World
                 r => Testimony.RevealSighting(r.Speaker, r.Target),
                 gate: () => ModConfig.AllowTestimony.Value,
                 aliases: new[] { "testify", "reveal_sighting", "tell_what_i_know" },
-                relevant: s => s == null || s.CanTestifyAbout.Count > 0);
+                relevant: s => s == null || s.CanTestifyAbout.Count > 0,
+                needsInvitation: true);
 
             Add("give_up_a_detail", "you tell them something about yourself and it goes into their case file; put name, address, job, workplace, partner or phone in target",
                 r => Disclosure.Reveal(r.Speaker, r.Target),
                 gate: () => ModConfig.AllowDisclosure.Value,
                 aliases: new[] { "tell_them_about_myself", "disclose", "file_a_detail" },
-                relevant: s => s == null || s.CanDisclose.Count > 0);
+                relevant: s => s == null || s.CanDisclose.Count > 0,
+                needsInvitation: true);
 
             // --- Going somewhere ----------------------------------------------------
             Add("go", "you drop what you were doing and leave; put go_home, go_to_work, go_to_bed or leave in target",
@@ -207,7 +209,8 @@ namespace LooseLips.World
 
         private static void Add(string name, string description, Func<EffectCatalogue.Request, string> run,
                                 Func<bool> gate = null, string conflicts = null, string[] aliases = null,
-                                Func<Context.CitizenSnapshot, bool> relevant = null)
+                                Func<Context.CitizenSnapshot, bool> relevant = null,
+                                bool needsInvitation = false)
         {
             EffectCatalogue.Register(new EffectCatalogue.Definition
             {
@@ -217,7 +220,8 @@ namespace LooseLips.World
                 Enabled = gate ?? (() => true),
                 Conflicts = conflicts,
                 Aliases = aliases ?? new string[0],
-                Relevant = relevant
+                Relevant = relevant,
+                NeedsInvitation = needsInvitation
             });
         }
 
@@ -238,7 +242,8 @@ namespace LooseLips.World
         }
 
         /// <summary>Apply a reply's effects. Runs on the main thread.</summary>
-        public static EffectReport Apply(Citizen speaker, NpcReply reply, bool shouted)
+        public static EffectReport Apply(Citizen speaker, NpcReply reply, bool shouted,
+                                         string playerLine = null)
         {
             var report = new EffectReport();
             if (reply == null) return report;
@@ -300,6 +305,12 @@ namespace LooseLips.World
                     groupsUsed[definition.Conflicts] = definition.Name;
                 }
 
+                if (definition.NeedsInvitation && !Invitation.WasInvited(playerLine))
+                {
+                    report.Reject(definition.Name, "nobody asked");
+                    continue;
+                }
+
                 try
                 {
                     var refusal = definition.Run(new EffectCatalogue.Request
@@ -307,7 +318,8 @@ namespace LooseLips.World
                         Speaker = speaker,
                         Target = effect.Target,
                         Detail = effect.Detail,
-                        Shouted = shouted
+                        Shouted = shouted,
+                        PlayerLine = playerLine
                     });
 
                     if (refusal == null) report.Applied.Add(definition.Name);

@@ -36,6 +36,9 @@ namespace LooseLips.Context
 
             sb.AppendLine("# The person talking to you");
             sb.AppendLine("A private investigator. " + DescribeFamiliarity(s));
+            sb.AppendLine("They are not always working. Someone who chats, flirts, insults you or "
+                        + "says nothing much is doing exactly that; answer the person in front of "
+                        + "you, not the case you assume they are on.");
             sb.AppendLine("How much you like them: " + Band(s.Like, "you despise them", "you are wary of them", "you are neutral", "you are friendly", "you trust them completely"));
             if (!string.IsNullOrEmpty(s.AllegianceNote)) sb.AppendLine(s.AllegianceNote);
             if (s.ConnectionsToPlayer.Count > 0)
@@ -114,6 +117,10 @@ namespace LooseLips.Context
                     sb.AppendLine("The only people you can truthfully say you saw: " +
                                   string.Join(", ", s.CanTestifyAbout) + ".");
                     sb.AppendLine("Naming anybody else is a lie, and the city will not back it up.");
+                    sb.AppendLine("This list is here so you can answer if you are asked. It is not a "
+                                + "subject you raise. Do not recite it, do not offer another name when a "
+                                + "reply falls flat, and do not treat every remark as a question about "
+                                + "who you have seen.");
                 }
 
                 if (s.CanDisclose.Count > 0)

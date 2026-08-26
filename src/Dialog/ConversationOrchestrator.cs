@@ -89,11 +89,18 @@ namespace LooseLips.Dialog
             }
 
             // Let the world know the player said something out loud, whatever the model returns.
+            //
+            // The thinking beat deliberately does not follow in the same frame. Both lines go
+            // through the same speech pipeline, so a "..." issued immediately replaced the
+            // player's own line before it could be read - the player saw their sentence vanish
+            // into an empty bubble. It is posted from the request instead, and only once the
+            // model has been slow enough to be worth apologising for.
             SpeechRelay.PlayerSaid(citizen, playerLine, shouted);
-            SpeechRelay.ShowThinking(citizen);
 
             var earshot = 0;
             try { earshot = World.Earshot.CitizensWhoCanHear(citizen, shouted).Count; } catch { }
+
+            var settled = false;
 
             _ = Task.Run(async () =>
             {
@@ -103,9 +110,22 @@ namespace LooseLips.Dialog
                     // The player typed this line themselves and is standing there waiting for an
                     // answer. If the model stops mid-object, ask again rather than making them
                     // type it a second time; the citizen's own turns are not rationed.
-                    reply = await Player2Client.GenerateReplyAsync(systemPrompt, history, turnMessage,
-                                                                  retryIfUnusable: true)
-                                               .ConfigureAwait(false);
+                    //
+                    // The citizen only visibly stalls if the model is actually taking its time:
+                    // a fast answer should replace the player's line, never a placeholder.
+                    var generating = Player2Client.GenerateReplyAsync(systemPrompt, history, turnMessage,
+                                                                     retryIfUnusable: true);
+                    if (await Task.WhenAny(generating, Task.Delay(ThinkingBeatAfterMs))
+                                  .ConfigureAwait(false) != generating)
+                    {
+                        MainThread.Post(() =>
+                        {
+                            if (settled) return;
+                            SpeechRelay.ShowThinking(Humans.Resolve(id));
+                        });
+                    }
+
+                    reply = await generating.ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -114,9 +134,10 @@ namespace LooseLips.Dialog
 
                 MainThread.Post(() =>
                 {
+                    settled = true;
                     try
                     {
-                        Complete(citizen, playerLine, shouted, reply, earshot, systemPrompt, turnMessage);
+                        Complete(id, playerLine, shouted, reply, earshot, systemPrompt, turnMessage);
                     }
                     finally
                     {
@@ -126,10 +147,21 @@ namespace LooseLips.Dialog
             });
         }
 
-        private static void Complete(Citizen citizen, string playerLine, bool shouted, NpcReply reply,
+        /// <summary>How long the model may take before the citizen visibly stalls.</summary>
+        private const int ThinkingBeatAfterMs = 900;
+
+        private static void Complete(int id, string playerLine, bool shouted, NpcReply reply,
                                     int earshot, string systemPrompt, string turnMessage)
         {
-            if (citizen == null) return;
+            // Resolved here rather than carried in from the request. Several seconds passed
+            // while the model was thinking, and a Citizen reference does not survive that:
+            // the object is pooled, and the one captured earlier may now be somebody else.
+            var citizen = Humans.Resolve(id);
+            if (citizen == null)
+            {
+                Plugin.Log.LogInfo("The citizen this reply was meant for is no longer around; dropping it.");
+                return;
+            }
 
             var who = citizen.GetCitizenName();
 
@@ -148,7 +180,7 @@ namespace LooseLips.Dialog
             WorldEffectExecutor.EffectReport report = null;
             try
             {
-                report = WorldEffectExecutor.Apply(citizen, reply, shouted);
+                report = WorldEffectExecutor.Apply(citizen, reply, shouted, playerLine);
             }
             catch (Exception e)
             {
