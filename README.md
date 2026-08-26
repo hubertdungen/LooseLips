@@ -9,6 +9,25 @@
 
 ---
 
+> ### Read this before installing
+>
+> **This is an early release and it is still being worked on.** There are known bugs and
+> rough edges. It is put out in this state so people can try it and tell me what breaks —
+> if something misbehaves, please [open an issue](https://github.com/hubertdungen/LooseLips/issues)
+> rather than assume it is meant to work that way.
+>
+> **It needs the free [Player2](https://player2.game/) desktop app**, installed, open and
+> signed in on the same machine. That app is what actually runs the AI. Without it the mod
+> loads but stays quiet, and citizens fall back to the game's normal dialogue.
+>
+> **If the game crashes at seemingly random moments**, that is very likely not this mod.
+> Shadows of Doubt with BepInEx currently suffers from a .NET issue that breaks modded hooks
+> mid-session and can take the whole game down — any mod may appear to be the culprit.
+> Setting the environment variable `DOTNET_TieredCompilation` to `0` for your user account,
+> then restarting Steam, fixes it.
+
+---
+
 Ask a barman what he saw. Lie about being a police officer and watch the street scatter.
 Lean in and whisper so only one person hears. Talk somebody into handing over the cash in
 their pocket, into telling you where they saw your suspect, into walking away — or into

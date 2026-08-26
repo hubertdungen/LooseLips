@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.18.1
+
+Packaging only - the mod itself is unchanged from 0.18.0.
+
+* **The Thunderstore package now declares BepInEx as a dependency.** 0.18.0 shipped with an
+  empty dependency list, so installing it on a clean setup brought down the mod without the
+  loader it needs, and it did nothing at all.
+* **The listing now says what it needs and what it is.** The Player2 app requirement and the
+  early state of the mod were only visible to somebody who read the whole README.
+* **Noted the .NET tiered-compilation crash** that currently affects modded Shadows of Doubt
+  as a whole, so it stops being mistaken for a fault in this mod.
+
 ## 0.18.0
 
 What people tell you now reaches the case board.

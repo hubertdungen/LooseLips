@@ -133,6 +133,8 @@ relationship caps refusing the model's over-reach. Evidence lives in
 
 ## Publishing
 
-Not published anywhere yet. The standing instruction is **publish only when it works**, and
-publishing needs the owner's own Thunderstore / mod.io tokens. Shadows of Doubt uses
+Published on Thunderstore since 26 Aug 2026 as **DLForge-LooseLips**, currently 0.18.1;
+0.18.0 went out with an empty `dependencies` list and is superseded. Thunderstore versions are
+immutable, so any fix costs a new version number. A Player2 listing is in draft. Publishing
+needs the owner's own Thunderstore / Player2 tokens. Shadows of Doubt uses
 **mod.io** (game id 5624), not Steam Workshop; Thunderstore is the channel for BepInEx mods.
